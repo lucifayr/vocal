@@ -1,6 +1,6 @@
-use rodio::{Decoder, OutputStream, Sink, Source};
+use rodio::{Decoder, OutputStream, Sink};
 
-use super::{information::get_duration, source_data::SourceData};
+use super::{information::get_duration_and_samples, source_data::SourceData};
 
 pub fn init_audio_source(path: &str) -> Option<SourceData> {
     let file = match std::fs::File::open(path) {
@@ -13,17 +13,14 @@ pub fn init_audio_source(path: &str) -> Option<SourceData> {
         Err(_) => return None,
     };
 
-    let source_duration = source.total_duration();
-    let duration = match source_duration {
-        Some(duration) => duration,
-        None => match get_duration(path) {
-            Some(duration) => duration,
-            None => return None,
-        },
+    let (duration, samples) = match get_duration_and_samples(path) {
+        Some(data) => data,
+        None => return None,
     };
 
     Some(SourceData {
         source,
+        samples,
         duration,
         path: path.to_owned(),
         speed: 1.0,

@@ -3,10 +3,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rodio::Sink;
+use rodio::{Sink, Source};
+use termion::{clear, cursor};
 
 use crate::{
-    audio::source_data::SourceData,
+    audio::{graph::render_bar_graph, source_data::SourceData},
     unicode::{self, render::render_loading_bar},
 };
 
@@ -19,6 +20,7 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         path,
         speed,
         volume,
+        samples,
     } = source_data;
 
     let name = match get_filename_from_path(path.as_str()) {
@@ -26,24 +28,57 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         None => "???",
     };
 
+    let color = unicode::colors::Color::Blue;
+
+    let interval = 20;
+    let sample_rate = source.sample_rate();
+    let step = (sample_rate * interval) as f32 / 1000.0;
+
     sink.set_speed(speed);
     sink.set_volume(volume);
     sink.append(source);
+
     let start_time = Instant::now();
     loop {
+        print!("{}{}", cursor::Goto(1, 1), clear::All);
+
+        let mut content = "".to_owned();
+
         let passed_time = start_time.elapsed().as_secs_f32();
-        let bar = render_loading_bar(
+        let progress = passed_time / duration.as_secs_f32();
+
+        let start = (progress * samples.len() as f32) as usize;
+
+        let sample_slice: Vec<f32> = samples
+            .clone()
+            .iter()
+            .skip(start)
+            .take(step as usize)
+            .map(|s| *s)
+            .collect();
+
+        let bar_count = (terminal_data.x / 2) as usize;
+        let chunk_size = sample_slice.len() / bar_count;
+
+        let reduced_samples: Vec<f32> = sample_slice
+            .chunks(chunk_size)
+            .map(|chunk| chunk.iter().sum::<f32>() / chunk_size as f32)
+            .take(bar_count)
+            .collect();
+
+        content += render_bar_graph(reduced_samples, &terminal_data, bar_count, color).as_str();
+        content += format!("{}", cursor::Goto(0, terminal_data.y / 2 + 1)).as_str();
+        content += format!("Playing: {}\n", name).as_str();
+        content += render_loading_bar(
             passed_time,
             0.0,
             duration.as_secs_f32() / speed,
             terminal_data.x.into(),
-            unicode::colors::Color::Blue,
-        );
+            color,
+        )
+        .as_str();
 
-        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-        println!("Playing: {}\n", name);
-        println!("{bar}");
-
-        thread::sleep(Duration::from_millis(50));
+        println!("{content}");
+        thread::sleep(Duration::from_millis(interval.into()));
     }
 }

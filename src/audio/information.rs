@@ -1,7 +1,7 @@
 use rodio::{Decoder, Source};
 use std::time::Duration;
 
-pub fn get_duration(path: &str) -> Option<Duration> {
+pub fn get_duration_and_samples(path: &str) -> Option<(Duration, Vec<f32>)> {
     let file = match std::fs::File::open(path) {
         Ok(file) => file,
         Err(_) => return None,
@@ -14,8 +14,8 @@ pub fn get_duration(path: &str) -> Option<Duration> {
 
     let channels = source.channels();
     let sample_rate = source.sample_rate();
-    let sample_count = source.count();
+    let samples: Vec<f32> = source.convert_samples().collect();
 
-    let seconds = (sample_count as f32 / sample_rate as f32) / channels as f32;
-    Some(Duration::from_millis((seconds * 1000.0) as u64))
+    let seconds = (samples.len() as f32 / sample_rate as f32) / channels as f32;
+    Some((Duration::from_millis((seconds * 1000.0) as u64), samples))
 }
