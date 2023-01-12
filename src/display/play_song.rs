@@ -17,6 +17,8 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         source,
         duration,
         path,
+        speed,
+        volume,
     } = source_data;
 
     let name = match get_filename_from_path(path.as_str()) {
@@ -24,6 +26,8 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         None => "???",
     };
 
+    sink.set_speed(speed);
+    sink.set_volume(volume);
     sink.append(source);
     let start_time = Instant::now();
     loop {
@@ -31,7 +35,7 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         let bar = render_loading_bar(
             passed_time,
             0.0,
-            duration.as_secs_f32(),
+            duration.as_secs_f32() / speed,
             terminal_data.x.into(),
             unicode::colors::Color::Blue,
         );

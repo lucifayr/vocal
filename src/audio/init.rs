@@ -26,6 +26,8 @@ pub fn init_audio_source(path: &str) -> Option<SourceData> {
         source,
         duration,
         path: path.to_owned(),
+        speed: 1.0,
+        volume: 1.0,
     })
 }
 
