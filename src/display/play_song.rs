@@ -18,9 +18,9 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         source,
         duration,
         path,
-        speed,
         volume,
         samples,
+        speed,
     } = source_data;
 
     let name = match get_filename_from_path(path.as_str()) {
@@ -33,6 +33,7 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
     let interval = 20;
     let sample_rate = source.sample_rate();
     let step = (sample_rate * interval) as f32 / 1000.0;
+    let duration_secs = duration.as_secs_f32() / speed;
 
     sink.set_speed(speed);
     sink.set_volume(volume);
@@ -45,7 +46,7 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         let mut content = "".to_owned();
 
         let passed_time = start_time.elapsed().as_secs_f32();
-        let progress = passed_time / duration.as_secs_f32();
+        let progress = passed_time / duration_secs;
 
         let start = (progress * samples.len() as f32) as usize;
 
@@ -56,6 +57,10 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
             .take(step as usize)
             .map(|s| *s)
             .collect();
+
+        if sample_slice.len() == 0 {
+            return;
+        }
 
         let bar_count = (terminal_data.x / 2) as usize;
         let chunk_size = sample_slice.len() / bar_count;
@@ -81,13 +86,18 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         content += render_loading_bar(
             passed_time,
             0.0,
-            duration.as_secs_f32() / speed,
+            duration_secs,
             terminal_data.x.into(),
             color,
         )
         .as_str();
 
         println!("{content}");
+
+        if duration_secs < passed_time {
+            return;
+        }
+
         thread::sleep(Duration::from_millis(interval.into()));
     }
 }
