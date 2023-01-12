@@ -10,11 +10,7 @@ pub fn render_bar_graph(
 ) -> String {
     let width = terminal_data.x / bar_count as u16;
     let height = terminal_data.y / 2;
-    let max_value = samples
-        .iter()
-        .cloned()
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap_or(1.0);
+    let max_value = 1.0;
 
     let mut graph = "".to_owned();
     for (i, value) in samples.iter().enumerate() {
