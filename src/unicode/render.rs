@@ -1,4 +1,5 @@
 use crate::unicode::codes::FULL_BLOCK;
+use std::cmp;
 
 use super::{
     codes::{
@@ -18,15 +19,16 @@ pub fn render_loading_bar(
     let lenght = max - min;
     let progress = current / lenght;
 
-    let amount = (progress * block_count as f32) as i32;
+    let amount = progress * block_count as f32;
+    let tip_progress = (progress * block_count as f32) % 1.0;
+
     let mut bar_content = "".to_owned();
 
-    for _ in 0..amount - 1 {
+    for _ in 0..cmp::min(amount as i32, block_count - 1) {
         bar_content += FULL_BLOCK;
     }
 
-    bar_content += &render_single_block(progress);
-
+    bar_content += &render_single_block(tip_progress);
     format!("\x1b[3{color}m{bar_content}\x1b[m")
 }
 
