@@ -1,12 +1,18 @@
 use audio::init::{init_audio_handler, init_audio_source};
-use display::play_song::play_song;
+use display::{play_song::play_song, terminal::get_terminal_data};
 
 mod audio;
 mod display;
 mod unicode;
 
 fn main() {
-    let (x, _) = termion::terminal_size().unwrap();
+    let terminal_data = match get_terminal_data() {
+        Some(terminal_data) => terminal_data,
+        None => {
+            println!("Couldn't get terminal data");
+            return;
+        }
+    };
 
     let (sink, _stream) = match init_audio_handler() {
         Some(handler_data) => handler_data,
@@ -25,5 +31,5 @@ fn main() {
         }
     };
 
-    play_song(sink, source_data, x.into());
+    play_song(sink, source_data, terminal_data);
 }

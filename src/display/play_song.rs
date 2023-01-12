@@ -10,7 +10,9 @@ use crate::{
     unicode::{self, render::render_loading_bar},
 };
 
-pub fn play_song(sink: Sink, source_data: SourceData, width: i32) {
+use super::terminal::TerminalData;
+
+pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalData) {
     let SourceData { source, duration } = source_data;
 
     sink.append(source);
@@ -21,7 +23,7 @@ pub fn play_song(sink: Sink, source_data: SourceData, width: i32) {
             passed_time,
             0.0,
             duration.as_secs_f32(),
-            width,
+            terminal_data.x.into(),
             unicode::colors::Color::Blue,
         );
 
