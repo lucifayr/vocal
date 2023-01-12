@@ -8,7 +8,10 @@ use termion::{clear, cursor};
 
 use crate::{
     audio::{graph::render_bar_graph, source_data::SourceData},
-    unicode::{self, render::render_loading_bar},
+    unicode::{
+        self,
+        render::{render_loading_bar, render_title},
+    },
 };
 
 use super::{terminal::TerminalData, text::get_filename_from_path};
@@ -36,53 +39,34 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
     let duration_secs = duration.as_secs_f32() / speed;
 
     sink.set_speed(speed);
-    sink.set_volume(volume);
+    sink.set_volume(volume / 2.0);
     sink.append(source);
 
     let start_time = Instant::now();
     loop {
         print!("{}{}", cursor::Goto(1, 1), clear::All);
-
         let mut content = "".to_owned();
 
         let passed_time = start_time.elapsed().as_secs_f32();
-        let progress = passed_time / duration_secs;
-
-        let start = (progress * samples.len() as f32) as usize;
-
-        let sample_slice: Vec<f32> = samples
-            .clone()
-            .iter()
-            .skip(start)
-            .take(step as usize)
-            .map(|s| *s)
-            .collect();
-
-        if sample_slice.len() == 0 {
+        if duration_secs < passed_time {
             return;
         }
 
-        let bar_count = (terminal_data.x / 2) as usize;
-        let chunk_size = sample_slice.len() / bar_count;
+        let progress = passed_time / duration_secs;
 
-        let reduced_samples: Vec<f32> = sample_slice
-            .chunks(chunk_size)
-            .map(|chunk| chunk.iter().sum::<f32>() / chunk_size as f32)
-            .take(bar_count)
-            .collect();
+        let start = (progress * samples.len() as f32) as usize;
+        let bar_count = (terminal_data.x / 2) as usize;
+
+        let reduced_samples =
+            match reduce_sample_to_slice(samples.clone(), start, step as usize, bar_count) {
+                Ok(samples) => samples,
+                Err(_) => return,
+            };
 
         let title = format!("Playing: {}\n\n", name);
 
         content += render_bar_graph(reduced_samples, &terminal_data, bar_count, color).as_str();
-        content += format!(
-            "{}",
-            cursor::Goto(
-                terminal_data.x / 2 - title.len() as u16 / 2,
-                terminal_data.y / 2 + 2
-            )
-        )
-        .as_str();
-        content += title.as_str();
+        content += render_title(title.as_str(), &terminal_data).as_str();
         content += render_loading_bar(
             passed_time,
             0.0,
@@ -93,11 +77,32 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         .as_str();
 
         println!("{content}");
-
-        if duration_secs < passed_time {
-            return;
-        }
-
         thread::sleep(Duration::from_millis(interval.into()));
     }
+}
+
+fn reduce_sample_to_slice(
+    samples: Vec<f32>,
+    start: usize,
+    step: usize,
+    bar_count: usize,
+) -> Result<Vec<f32>, ()> {
+    let sample_slice: Vec<f32> = samples
+        .clone()
+        .iter()
+        .skip(start)
+        .take(step)
+        .map(|s| *s)
+        .collect();
+
+    let chunk_size = match sample_slice.len() / bar_count {
+        x if x != 0 => x,
+        _ => return Err(()),
+    };
+
+    Ok(sample_slice
+        .chunks(chunk_size)
+        .map(|chunk| chunk.iter().sum::<f32>() / chunk_size as f32)
+        .take(bar_count)
+        .collect())
 }

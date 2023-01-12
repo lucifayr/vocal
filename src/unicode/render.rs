@@ -1,4 +1,6 @@
-use crate::unicode::codes::FULL_BLOCK;
+use termion::cursor;
+
+use crate::{display::terminal::TerminalData, unicode::codes::FULL_BLOCK};
 use std::cmp;
 
 use super::{
@@ -8,6 +10,17 @@ use super::{
     },
     colors::Color,
 };
+
+pub fn render_title(title: &str, terminal_data: &TerminalData) -> String {
+    format!(
+        "{}{}",
+        cursor::Goto(
+            terminal_data.x / 2 - title.len() as u16 / 2,
+            terminal_data.y / 2 + 2
+        ),
+        title
+    )
+}
 
 pub fn render_loading_bar(
     current: f32,
