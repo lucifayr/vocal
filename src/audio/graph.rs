@@ -10,7 +10,7 @@ pub fn render_bar_graph(
 ) -> String {
     let width = terminal_data.x / bar_count as u16;
     let height = terminal_data.y / 2;
-    let max_val = samples
+    let max_value = samples
         .iter()
         .cloned()
         .max_by(|a, b| a.partial_cmp(b).unwrap())
@@ -18,11 +18,14 @@ pub fn render_bar_graph(
 
     let mut graph = "".to_owned();
     for (i, value) in samples.iter().enumerate() {
-        let bar_height = (value / max_val) * height as f32;
+        let bar_height = (value / max_value) * height as f32;
         for w in 0..width {
             let x_position = i as u16 * width + (w + 1);
             for h in 0..bar_height as u16 {
-                let y_position = height - h;
+                let y_position = match h {
+                    h if h > height => 0,
+                    _ => height - h,
+                };
                 if x_position <= terminal_data.x || y_position <= terminal_data.y {
                     graph += format!(
                         "\x1b[3{color}m{}{}\x1b[m",
@@ -37,4 +40,3 @@ pub fn render_bar_graph(
 
     graph
 }
-
