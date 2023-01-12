@@ -22,7 +22,7 @@ fn main() {
         }
     };
 
-    let path = "mock_audio/rick.mp3";
+    let path = "mock_audio/phonk.mp3";
     let source_data = match init_audio_source(path) {
         Some(source_data) => source_data,
         None => {
