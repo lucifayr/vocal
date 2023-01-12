@@ -10,10 +10,19 @@ use crate::{
     unicode::{self, render::render_loading_bar},
 };
 
-use super::terminal::TerminalData;
+use super::{terminal::TerminalData, text::get_filename_from_path};
 
 pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalData) {
-    let SourceData { source, duration } = source_data;
+    let SourceData {
+        source,
+        duration,
+        path,
+    } = source_data;
+
+    let name = match get_filename_from_path(path.as_str()) {
+        Some(name) => name,
+        None => "???",
+    };
 
     sink.append(source);
     let start_time = Instant::now();
@@ -28,6 +37,7 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
         );
 
         print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+        println!("Playing: {}\n", name);
         println!("{bar}");
 
         thread::sleep(Duration::from_millis(50));

@@ -22,7 +22,11 @@ pub fn init_audio_source(path: &str) -> Option<SourceData> {
         },
     };
 
-    Some(SourceData { source, duration })
+    Some(SourceData {
+        source,
+        duration,
+        path: path.to_owned(),
+    })
 }
 
 pub fn init_audio_handler() -> Option<(Sink, OutputStream)> {
