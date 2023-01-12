@@ -24,11 +24,14 @@ pub fn render_loading_bar(
 
     let mut bar_content = "".to_owned();
 
-    for _ in 0..cmp::min(amount as i32, block_count - 1) {
+    for _ in 0..cmp::min(amount as i32, block_count) {
         bar_content += FULL_BLOCK;
     }
 
-    bar_content += &render_single_block(tip_progress);
+    if amount < block_count as f32 {
+        bar_content += &render_single_block(tip_progress);
+    }
+
     format!("\x1b[3{color}m{bar_content}\x1b[m")
 }
 

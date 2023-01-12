@@ -1,57 +1,29 @@
-use rodio::{Decoder, OutputStream, Sink, Source};
-use std::{
-    thread,
-    time::{Duration, Instant},
-};
+use audio::init::{init_audio_handler, init_audio_source};
+use display::play_song::play_song;
 
-use crate::unicode::render::render_loading_bar;
-
+mod audio;
+mod display;
 mod unicode;
 
 fn main() {
     let (x, _) = termion::terminal_size().unwrap();
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
 
-    let path = "mock_audio/rick.mp3";
-
-    let file = std::fs::File::open(path).unwrap();
-    let source = Decoder::new(file).unwrap();
-
-    let source_duration = source.total_duration();
-    let sink = Sink::try_new(&stream_handle).unwrap();
-
-    let duration = match source_duration {
-        Some(duration) => duration,
-        None => get_duration(path),
+    let (sink, _stream) = match init_audio_handler() {
+        Some(handler_data) => handler_data,
+        None => {
+            println!("Failed to create audio sink");
+            return;
+        }
     };
 
-    sink.append(source);
-    let start_time = Instant::now();
-    loop {
-        let passed_time = start_time.elapsed().as_secs_f32();
-        let bar = render_loading_bar(
-            passed_time,
-            0.0,
-            duration.as_secs_f32(),
-            x.into(),
-            unicode::colors::Color::Blue,
-        );
+    let path = "mock_audio/rick.mp3";
+    let source_data = match init_audio_source(path) {
+        Some(source_data) => source_data,
+        None => {
+            println!("Failed to get audio source");
+            return;
+        }
+    };
 
-        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-        println!("{bar}");
-
-        thread::sleep(Duration::from_millis(100));
-    }
-}
-
-fn get_duration(path: &str) -> Duration {
-    let file = std::fs::File::open(path).unwrap();
-    let source = Decoder::new(file).unwrap();
-
-    let channels = source.channels();
-    let sample_rate = source.sample_rate();
-    let sample_count = source.count();
-
-    let seconds = (sample_count as f32 / sample_rate as f32) / channels as f32;
-    Duration::from_millis((seconds * 1000.0) as u64)
+    play_song(sink, source_data, x.into());
 }
