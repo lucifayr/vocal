@@ -66,9 +66,18 @@ pub fn play_song(sink: Sink, source_data: SourceData, terminal_data: TerminalDat
             .take(bar_count)
             .collect();
 
+        let title = format!("Playing: {}\n\n", name);
+
         content += render_bar_graph(reduced_samples, &terminal_data, bar_count, color).as_str();
-        content += format!("{}", cursor::Goto(0, terminal_data.y / 2 + 1)).as_str();
-        content += format!("Playing: {}\n", name).as_str();
+        content += format!(
+            "{}",
+            cursor::Goto(
+                terminal_data.x / 2 - title.len() as u16 / 2,
+                terminal_data.y / 2 + 2
+            )
+        )
+        .as_str();
+        content += title.as_str();
         content += render_loading_bar(
             passed_time,
             0.0,
