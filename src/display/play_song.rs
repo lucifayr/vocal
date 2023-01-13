@@ -17,9 +17,9 @@ use crate::{audio::source_data::SourceData, unicode::colors::get_color};
 use super::{
     bar::draw_bar,
     chart::{create_data_from_samples, draw_chart},
+    info::draw_info,
     input::pull_input,
     runtime::init_runtime_options,
-    title::draw_title,
 };
 
 pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut Terminal<B>) {
@@ -100,7 +100,16 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
                 None => {}
             };
 
-            rect.render_widget(draw_title(path.as_str(), color), chunks[1]);
+            rect.render_widget(
+                draw_info(
+                    path.as_str(),
+                    runtime_options.volume,
+                    runtime_options.is_muted,
+                    runtime_options.speed,
+                    color,
+                ),
+                chunks[1],
+            );
             rect.render_widget(draw_bar(progress, color), chunks[2]);
         }) {
             Ok(_) => {}
