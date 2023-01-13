@@ -1,19 +1,20 @@
-use std::fmt;
+use rand::Rng;
+use tui::style::Color;
 
-#[derive(Debug, Clone, Copy)]
-pub enum Color {
-    Black = 0,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-}
+pub fn get_color(is_rainbow: bool) -> Color {
+    let mut rng = rand::thread_rng();
 
-impl fmt::Display for Color {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", *self as u8)
+    if is_rainbow {
+        match rng.gen_range(1..7) {
+            x if x == 1 => Color::Blue,
+            x if x == 2 => Color::Yellow,
+            x if x == 3 => Color::Red,
+            x if x == 4 => Color::Green,
+            x if x == 5 => Color::Magenta,
+            _ => Color::White,
+        }
+    } else {
+        Color::Blue
     }
 }
+
