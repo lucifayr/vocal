@@ -65,46 +65,49 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
         let start = (progress * samples.len() as f64) as usize;
         let bar_count = (terminal_size.width / 2) as usize;
 
-        terminal
-            .draw(|rect| {
-                let size = rect.size();
-                let chunks = Layout::default()
-                    .direction(Direction::Vertical)
-                    .margin(2)
-                    .constraints(
-                        [
-                            Constraint::Length(size.height / 2),
-                            Constraint::Length((3 * size.height) / 8),
-                            Constraint::Max(size.height / 8),
-                        ]
-                        .as_ref(),
-                    )
-                    .split(size);
+        match terminal.draw(|rect| {
+            let size = rect.size();
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(2)
+                .constraints(
+                    [
+                        Constraint::Length(size.height / 2),
+                        Constraint::Length((3 * size.height) / 8),
+                        Constraint::Max(size.height / 8),
+                    ]
+                    .as_ref(),
+                )
+                .split(size);
 
-                let max = 10000;
-                let min_sample_size = 0.3;
+            let max = 10000;
+            let min_sample_size = 0.3;
 
-                match create_data_from_samples(
-                    samples.clone(),
-                    start,
-                    step as usize,
-                    bar_count,
-                    max,
-                    min_sample_size,
-                ) {
-                    Some(data) => {
-                        rect.render_widget(
-                            draw_chart(data.as_slice(), max, min_sample_size, color),
-                            chunks[0],
-                        );
-                    }
-                    None => {}
-                };
+            match create_data_from_samples(
+                samples.clone(),
+                start,
+                step as usize,
+                bar_count,
+                max,
+                min_sample_size,
+            ) {
+                Some(data) => {
+                    rect.render_widget(
+                        draw_chart(data.as_slice(), max, min_sample_size, color),
+                        chunks[0],
+                    );
+                }
+                None => {}
+            };
 
-                rect.render_widget(draw_title(path.as_str(), color), chunks[1]);
-                rect.render_widget(draw_bar(progress, color), chunks[2]);
-            })
-            .unwrap();
+            rect.render_widget(draw_title(path.as_str(), color), chunks[1]);
+            rect.render_widget(draw_bar(progress, color), chunks[2]);
+        }) {
+            Ok(_) => {}
+            Err(err) => {
+                println!("Failed to render frame: {}", err);
+            }
+        }
 
         loop {
             pull_input(&sink, &mut runtime_options);
