@@ -46,7 +46,7 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
 
     let start_time = Instant::now();
     loop {
-        let color = get_color(false);
+        let color = get_color(true);
 
         let passed_time = start_time.elapsed().as_secs_f32();
         if duration_secs < passed_time {

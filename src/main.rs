@@ -2,11 +2,7 @@ use std::io;
 
 use audio::init::{init_audio_handler, init_audio_source};
 use display::play_song::play_song;
-use tui::{
-    backend::CrosstermBackend,
-    widgets::{Block, Borders, Widget},
-    Terminal,
-};
+use tui::{backend::CrosstermBackend, Terminal};
 
 mod audio;
 mod display;
@@ -23,7 +19,7 @@ fn main() -> Result<(), io::Error> {
         }
     };
 
-    let path = "mock_audio/phonk.mp3";
+    let path = "mock_audio/rick.mp3";
     let source_data = match init_audio_source(path) {
         Some(source_data) => source_data,
         None => {
