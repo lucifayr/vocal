@@ -10,6 +10,11 @@ use tui::{
     Terminal,
 };
 
+use crossterm::{
+    event::{poll, read, Event, KeyCode},
+    terminal::enable_raw_mode,
+};
+
 use crate::{audio::source_data::SourceData, unicode::colors::get_color};
 
 use super::{
@@ -20,12 +25,13 @@ use super::{
 
 pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut Terminal<B>) {
     terminal.clear().unwrap();
+    enable_raw_mode().unwrap();
 
     let SourceData {
         source,
         duration,
         path,
-        volume,
+        mut volume,
         samples,
         speed,
     } = source_data;
@@ -35,19 +41,19 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
         Err(_) => panic!("size boogaloo"),
     };
 
+    let color = get_color(true);
     let interval = 16;
     let sample_rate = source.sample_rate();
     let step = (sample_rate * interval) as f32 / 1000.0;
     let duration_secs = duration.as_secs_f32() / speed;
 
     sink.set_speed(speed);
-    sink.set_volume(volume * 0.2);
+    sink.set_volume(volume);
     sink.append(source.repeat_infinite());
 
     let start_time = Instant::now();
-    loop {
-        let color = get_color(true);
 
+    loop {
         let passed_time = start_time.elapsed().as_secs_f32();
         if duration_secs < passed_time {
             return;
@@ -86,19 +92,42 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
                     min_sample_size,
                 ) {
                     Some(data) => {
-                        rect.render_widget(
-                            draw_chart(data.as_slice(), max, min_sample_size, color),
-                            chunks[0],
-                        );
+                        // rect.render_widget(
+                        //     draw_chart(data.as_slice(), max, min_sample_size, color),
+                        //     chunks[0],
+                        // );
                     }
                     None => {}
                 };
 
-                rect.render_widget(draw_title(path.as_str(), color), chunks[1]);
-                rect.render_widget(draw_bar(progress, color), chunks[2]);
+                // rect.render_widget(draw_title(path.as_str(), color), chunks[1]);
+                // rect.render_widget(draw_bar(progress, color), chunks[2]);
             })
             .unwrap();
 
+        if poll(Duration::from_millis(10)).unwrap_or(false) {
+            match read() {
+                Ok(read_event) => match read_event {
+                    Event::Key(key_event) => match key_event.code {
+                        KeyCode::Up => {
+                            if volume <= 0.95 {
+                                println!("up");
+                                volume += 0.05;
+                                sink.set_volume(volume)
+                            }
+                        }
+                        KeyCode::Down => {
+                            println!("down");
+                            volume -= 0.05;
+                            sink.set_volume(volume)
+                        }
+                        _ => {}
+                    },
+                    _ => {}
+                },
+                Err(_) => {}
+            }
+        }
         thread::sleep(Duration::from_millis(interval.into()));
     }
 }
