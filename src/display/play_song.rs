@@ -48,7 +48,7 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
 
     sink.set_speed(runtime_options.speed_decimal);
     sink.set_volume(runtime_options.volume_decimal);
-    sink.append(source.repeat_infinite());
+    sink.append(source);
 
     let start_time = Instant::now();
 
