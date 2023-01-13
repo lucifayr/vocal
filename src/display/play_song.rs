@@ -106,6 +106,8 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
                     runtime_options.volume,
                     runtime_options.is_muted,
                     runtime_options.speed,
+                    runtime_options.duration_secs,
+                    passed_time,
                     color,
                 ),
                 chunks[1],
