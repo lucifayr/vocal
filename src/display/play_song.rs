@@ -10,16 +10,15 @@ use tui::{
     Terminal,
 };
 
-use crossterm::{
-    event::{poll, read, Event, KeyCode},
-    terminal::enable_raw_mode,
-};
+use crossterm::terminal::enable_raw_mode;
 
 use crate::{audio::source_data::SourceData, unicode::colors::get_color};
 
 use super::{
     bar::draw_bar,
     chart::{create_data_from_samples, draw_chart},
+    input::pull_input,
+    runtime::init_runtime_options,
     title::draw_title,
 };
 
@@ -27,35 +26,28 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
     terminal.clear().unwrap();
     enable_raw_mode().unwrap();
 
-    let SourceData {
-        source,
-        duration,
-        path,
-        samples,
-        mut volume,
-        mut speed,
-    } = source_data;
-
-    let mut is_muted = false;
-    let mut is_paused = false;
-    let mut time_since_last_pause_tick = Instant::now();
-    let mut paused_time = 0.0;
-
-    let mut volume_decimal = volume as f32 / 100.0;
-    let mut speed_decimal = speed as f32 / 100.0;
-
     let terminal_size = match terminal.size() {
         Ok(size) => size,
         Err(_) => panic!("size boogaloo"),
     };
 
+    let SourceData {
+        source,
+        path,
+        samples,
+        duration,
+        volume,
+        speed,
+    } = source_data;
+
+    let mut runtime_options = init_runtime_options(volume, speed, duration);
+
     let interval = 16;
     let sample_rate = source.sample_rate();
     let step = (sample_rate * interval) as f32 / 1000.0;
-    let mut duration_secs = duration.as_secs_f64() / speed_decimal as f64;
 
-    sink.set_speed(speed_decimal);
-    sink.set_volume(volume_decimal);
+    sink.set_speed(runtime_options.speed_decimal);
+    sink.set_volume(runtime_options.volume_decimal);
     sink.append(source.repeat_infinite());
 
     let start_time = Instant::now();
@@ -63,12 +55,12 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
     loop {
         let color = get_color(false);
 
-        let passed_time = start_time.elapsed().as_secs_f64() - paused_time;
-        if duration_secs < passed_time {
+        let passed_time = start_time.elapsed().as_secs_f64() - runtime_options.paused_time;
+        if runtime_options.duration_secs < passed_time {
             return;
         }
 
-        let progress = passed_time / duration_secs;
+        let progress = passed_time / runtime_options.duration_secs;
 
         let start = (progress * samples.len() as f64) as usize;
         let bar_count = (terminal_size.width / 2) as usize;
@@ -115,80 +107,15 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
             .unwrap();
 
         loop {
-            if poll(Duration::from_millis(1)).unwrap_or(false) {
-                match read() {
-                    Ok(read_event) => match read_event {
-                        Event::Key(key_event) => match key_event.code {
-                            KeyCode::Char(' ') => {
-                                is_paused = !is_paused;
-                                if is_paused {
-                                    time_since_last_pause_tick = Instant::now();
-                                    sink.pause();
-                                } else {
-                                    sink.play();
-                                }
-                            }
-                            KeyCode::Up => {
-                                if volume < 100 {
-                                    volume += 5;
-                                    volume_decimal = volume as f32 / 100.0;
-                                    if !is_muted {
-                                        sink.set_volume(volume_decimal);
-                                    }
-                                }
-                            }
-                            KeyCode::Down => {
-                                if volume > 0 {
-                                    volume -= 5;
-                                    volume_decimal = volume as f32 / 100.0;
-                                    if !is_muted {
-                                        sink.set_volume(volume_decimal);
-                                    }
-                                }
-                            }
-                            KeyCode::Char('k') => {
-                                if speed < 200 {
-                                    speed += 5;
-                                    speed_decimal = speed as f32 / 100.0;
-                                    duration_secs = duration.as_secs_f64() / speed_decimal as f64;
-                                    sink.set_speed(speed_decimal);
-                                }
-                            }
-                            KeyCode::Char('j') => {
-                                if speed > 50 {
-                                    speed -= 5;
-                                    speed_decimal = speed as f32 / 100.0;
-                                    duration_secs = duration.as_secs_f64() / speed_decimal as f64;
-                                    sink.set_speed(speed_decimal);
-                                }
-                            }
-                            KeyCode::Char('r') => {
-                                speed = 100;
-                                speed_decimal = speed as f32 / 100.0;
-                                duration_secs = duration.as_secs_f64() / speed_decimal as f64;
-                                sink.set_speed(speed_decimal);
-                            }
-                            KeyCode::Char('m') => {
-                                if !is_muted {
-                                    sink.set_volume(0.0);
-                                    is_muted = true;
-                                } else {
-                                    sink.set_volume(volume_decimal);
-                                    is_muted = false;
-                                }
-                            }
-                            _ => {}
-                        },
-                        _ => {}
-                    },
-                    Err(_) => {}
-                }
-            }
-            if !is_paused {
+            pull_input(&sink, &mut runtime_options);
+            if !runtime_options.is_paused {
                 break;
             } else {
-                paused_time += time_since_last_pause_tick.elapsed().as_secs_f64();
-                time_since_last_pause_tick = Instant::now();
+                runtime_options.paused_time += runtime_options
+                    .time_since_last_pause_tick
+                    .elapsed()
+                    .as_secs_f64();
+                runtime_options.time_since_last_pause_tick = Instant::now();
             }
         }
         thread::sleep(Duration::from_millis(interval.into()));
