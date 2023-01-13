@@ -7,6 +7,6 @@ pub struct SourceData {
     pub samples: Vec<f32>,
     pub duration: Duration,
     pub path: String,
-    pub speed: f32,
-    pub volume: f32,
+    pub speed: u8,
+    pub volume: u8,
 }

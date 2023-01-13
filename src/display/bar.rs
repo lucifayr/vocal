@@ -3,7 +3,7 @@ use tui::{
     widgets::{Block, Gauge},
 };
 
-pub fn draw_bar<'a>(progress: f32, color: Color) -> Gauge<'a> {
+pub fn draw_bar<'a>(progress: f64, color: Color) -> Gauge<'a> {
     let bar_progress = (progress * 100.0) as u16;
     Gauge::default()
         .block(Block::default())
