@@ -45,7 +45,7 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
     let duration_secs = duration.as_secs_f32() / speed;
 
     sink.set_speed(speed);
-    sink.set_volume(volume / 25.0);
+    sink.set_volume(volume);
     sink.append(source);
 
     let start_time = Instant::now();
