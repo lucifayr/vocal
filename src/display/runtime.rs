@@ -9,8 +9,8 @@ pub struct RuntimeOptions {
     pub speed_decimal: f32,
     pub duration: Duration,
     pub duration_secs: f64,
-    pub time_since_last_pause_tick: Instant,
-    pub paused_time: f64,
+    pub time_since_last_tick: Instant,
+    pub passed_time: f64,
 }
 
 pub fn init_runtime_options(volume: u8, speed: u8, duration: Duration) -> RuntimeOptions {
@@ -27,7 +27,7 @@ pub fn init_runtime_options(volume: u8, speed: u8, duration: Duration) -> Runtim
         speed_decimal,
         duration,
         duration_secs,
-        time_since_last_pause_tick: Instant::now(),
-        paused_time: 0.0,
+        time_since_last_tick: Instant::now(),
+        passed_time: 0.0,
     }
 }

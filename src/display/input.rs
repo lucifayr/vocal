@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use crossterm::event::{poll, read, Event, KeyCode};
 use rodio::Sink;
@@ -13,7 +13,6 @@ pub fn pull_input(sink: &Sink, options: &mut RuntimeOptions) {
                     KeyCode::Char(' ') => {
                         options.is_paused = !options.is_paused;
                         if options.is_paused {
-                            options.time_since_last_pause_tick = Instant::now();
                             sink.pause();
                         } else {
                             sink.play();
@@ -41,8 +40,6 @@ pub fn pull_input(sink: &Sink, options: &mut RuntimeOptions) {
                         if options.speed < 200 {
                             options.speed += 5;
                             options.speed_decimal = options.speed as f32 / 100.0;
-                            options.duration_secs =
-                                options.duration.as_secs_f64() / options.speed_decimal as f64;
                             sink.set_speed(options.speed_decimal);
                         }
                     }
@@ -50,16 +47,12 @@ pub fn pull_input(sink: &Sink, options: &mut RuntimeOptions) {
                         if options.speed > 50 {
                             options.speed -= 5;
                             options.speed_decimal = options.speed as f32 / 100.0;
-                            options.duration_secs =
-                                options.duration.as_secs_f64() / options.speed_decimal as f64;
                             sink.set_speed(options.speed_decimal);
                         }
                     }
                     KeyCode::Char('r') => {
                         options.speed = 100;
                         options.speed_decimal = options.speed as f32 / 100.0;
-                        options.duration_secs =
-                            options.duration.as_secs_f64() / options.speed_decimal as f64;
                         sink.set_speed(options.speed_decimal);
                     }
                     KeyCode::Char('m') => {

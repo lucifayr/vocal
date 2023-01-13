@@ -50,17 +50,15 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
     sink.set_volume(runtime_options.volume_decimal);
     sink.append(source);
 
-    let start_time = Instant::now();
-
     loop {
         let color = get_color(false);
 
-        let passed_time = start_time.elapsed().as_secs_f64() - runtime_options.paused_time;
-        if runtime_options.duration_secs < passed_time {
-            return;
-        }
+        runtime_options.passed_time += runtime_options.time_since_last_tick.elapsed().as_secs_f64()
+            * runtime_options.speed_decimal as f64;
 
-        let progress = passed_time / runtime_options.duration_secs;
+        runtime_options.time_since_last_tick = Instant::now();
+
+        let progress = runtime_options.passed_time / runtime_options.duration_secs;
 
         let start = (progress * samples.len() as f64) as usize;
         let bar_count = (terminal_size.width / 2) as usize;
@@ -107,7 +105,7 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
                     runtime_options.is_muted,
                     runtime_options.speed,
                     runtime_options.duration_secs,
-                    passed_time,
+                    runtime_options.passed_time,
                     color,
                 ),
                 chunks[1],
@@ -124,12 +122,6 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
             pull_input(&sink, &mut runtime_options);
             if !runtime_options.is_paused {
                 break;
-            } else {
-                runtime_options.paused_time += runtime_options
-                    .time_since_last_pause_tick
-                    .elapsed()
-                    .as_secs_f64();
-                runtime_options.time_since_last_pause_tick = Instant::now();
             }
         }
         thread::sleep(Duration::from_millis(interval.into()));
