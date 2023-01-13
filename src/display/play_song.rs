@@ -50,7 +50,7 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
 
     let start_time = Instant::now();
     loop {
-        let color = get_color(true);
+        let color = get_color(false);
 
         let passed_time = start_time.elapsed().as_secs_f32();
         if duration_secs < passed_time {
@@ -126,17 +126,6 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
             })
             .unwrap();
 
-        // content += render_title(title.as_str(), &terminal_size).as_str();
-        // content += render_loading_bar(
-        //     passed_time,
-        //     0.0,
-        //     duration_secs,
-        //     terminal_size.width.into(),
-        //     color,
-        // )
-        // .as_str();
-
-        // println!("{content}");
         thread::sleep(Duration::from_millis(interval.into()));
     }
 }
