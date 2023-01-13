@@ -10,7 +10,7 @@ use tui::{
     Terminal,
 };
 
-use crossterm::terminal::enable_raw_mode;
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 
 use crate::{audio::source_data::SourceData, unicode::colors::get_color};
 
@@ -59,6 +59,10 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
         runtime_options.time_since_last_tick = Instant::now();
 
         let progress = runtime_options.passed_time / runtime_options.duration_secs;
+        if progress > 1.0 {
+            disable_raw_mode().unwrap();
+            return;
+        }
 
         let start = (progress * samples.len() as f64) as usize;
         let bar_count = (terminal_size.width / 2) as usize;
