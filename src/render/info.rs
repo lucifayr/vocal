@@ -5,8 +5,6 @@ use tui::{
     widgets::Paragraph,
 };
 
-use super::text::get_filename_from_path;
-
 pub fn draw_info(
     path: &str,
     volume: u8,
@@ -36,4 +34,22 @@ pub fn draw_info(
         Style::default().fg(color).add_modifier(Modifier::BOLD),
     ))
     .alignment(Alignment::Center)
+}
+
+fn get_filename_from_path(path: &str) -> Option<&str> {
+    path.split("/").last()?.split(".").next()
+}
+
+#[test]
+fn test_get_filename_from_path() {
+    assert_eq!(get_filename_from_path(""), Some(""));
+    assert_eq!(get_filename_from_path("file"), Some("file"));
+    assert_eq!(get_filename_from_path("file.mp3"), Some("file"));
+    assert_eq!(get_filename_from_path("file.mp3.exe"), Some("file"));
+    assert_eq!(get_filename_from_path("folder/file"), Some("file"));
+    assert_eq!(get_filename_from_path("folder/file.mp3"), Some("file"));
+    assert_eq!(
+        get_filename_from_path("folder/folder/file.mp3"),
+        Some("file")
+    );
 }

@@ -1,12 +1,14 @@
 use std::io;
 
-use audio::init::{init_audio_handler, init_audio_source};
-use display::play_song::play_song;
+use audio::{init::init_audio_handler, source_data::SourceData};
+use properties::runtime_properties::RuntimeOptions;
+use render::play_song::play_song;
 use tui::{backend::CrosstermBackend, Terminal};
 
 mod audio;
-mod display;
-mod unicode;
+mod events;
+mod properties;
+mod render;
 
 fn main() -> Result<(), io::Error> {
     let (sink, _stream) = match init_audio_handler() {
@@ -20,7 +22,7 @@ fn main() -> Result<(), io::Error> {
     };
 
     let path = "mock_audio/rick.mp3";
-    let source_data = match init_audio_source(path) {
+    let source_data = match SourceData::new(path) {
         Some(source_data) => source_data,
         None => {
             return Err(io::Error::new(
@@ -34,6 +36,8 @@ fn main() -> Result<(), io::Error> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    play_song(sink, source_data, &mut terminal);
+    let mut runtime_options = RuntimeOptions::new(50, 100);
+
+    play_song(sink, source_data, &mut terminal, &mut runtime_options);
     Ok(())
 }

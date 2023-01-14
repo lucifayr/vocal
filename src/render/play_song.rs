@@ -12,17 +12,25 @@ use tui::{
 
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 
-use crate::{audio::source_data::SourceData, unicode::colors::get_color};
+use crate::{
+    audio::source_data::SourceData,
+    events::input::pull_input,
+    properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
+};
 
 use super::{
     bar::draw_bar,
     chart::{create_data_from_samples, draw_chart},
+    colors::get_color,
     info::draw_info,
-    input::pull_input,
-    runtime::init_runtime_options,
 };
 
-pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut Terminal<B>) {
+pub fn play_song<B: Backend>(
+    sink: Sink,
+    source_data: SourceData,
+    terminal: &mut Terminal<B>,
+    runtime_options: &mut RuntimeOptions,
+) {
     terminal.clear().unwrap();
     enable_raw_mode().unwrap();
 
@@ -36,11 +44,9 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
         path,
         samples,
         duration,
-        volume,
-        speed,
     } = source_data;
 
-    let mut runtime_options = init_runtime_options(volume, speed, duration);
+    let mut audio_options = AudioOptions::new(duration);
 
     let interval = 16;
     let sample_rate = source.sample_rate();
@@ -53,12 +59,12 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
     loop {
         let color = get_color(false);
 
-        runtime_options.passed_time += runtime_options.time_since_last_tick.elapsed().as_secs_f64()
+        audio_options.passed_time += audio_options.time_since_last_tick.elapsed().as_secs_f64()
             * runtime_options.speed_decimal as f64;
 
-        runtime_options.time_since_last_tick = Instant::now();
+        audio_options.time_since_last_tick = Instant::now();
 
-        let progress = runtime_options.passed_time / runtime_options.duration_secs;
+        let progress = audio_options.passed_time / audio_options.duration.as_secs_f64();
         if progress > 1.0 {
             disable_raw_mode().unwrap();
             return;
@@ -108,8 +114,8 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
                     runtime_options.volume,
                     runtime_options.is_muted,
                     runtime_options.speed,
-                    runtime_options.duration_secs,
-                    runtime_options.passed_time,
+                    audio_options.duration.as_secs_f64(),
+                    audio_options.passed_time,
                     color,
                 ),
                 chunks[1],
@@ -123,8 +129,8 @@ pub fn play_song<B: Backend>(sink: Sink, source_data: SourceData, terminal: &mut
         }
 
         loop {
-            pull_input(&sink, &mut runtime_options);
-            if !runtime_options.is_paused {
+            pull_input(&sink, runtime_options, &mut audio_options);
+            if !audio_options.is_paused {
                 break;
             }
         }

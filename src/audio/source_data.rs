@@ -1,12 +1,54 @@
+use rodio::{Decoder, Source};
 use std::{fs::File, time::Duration};
-
-use rodio::Decoder;
 
 pub struct SourceData {
     pub source: Decoder<File>,
     pub samples: Vec<f32>,
     pub duration: Duration,
     pub path: String,
-    pub speed: u8,
-    pub volume: u8,
+}
+
+impl SourceData {
+    pub fn new(path: &str) -> Option<SourceData> {
+        let (duration, samples) = match get_duration_and_samples(path) {
+            Some(data) => data,
+            None => return None,
+        };
+
+        let file = match std::fs::File::open(path) {
+            Ok(file) => file,
+            Err(_) => return None,
+        };
+
+        let source = match Decoder::new(file) {
+            Ok(source) => source,
+            Err(_) => return None,
+        };
+
+        Some(SourceData {
+            source,
+            duration,
+            samples,
+            path: path.to_owned(),
+        })
+    }
+}
+
+pub fn get_duration_and_samples(path: &str) -> Option<(Duration, Vec<f32>)> {
+    let file = match std::fs::File::open(path) {
+        Ok(file) => file,
+        Err(_) => return None,
+    };
+
+    let source = match Decoder::new(file) {
+        Ok(source) => source,
+        Err(_) => return None,
+    };
+
+    let channels = source.channels();
+    let sample_rate = source.sample_rate();
+    let samples: Vec<f32> = source.convert_samples().collect();
+
+    let seconds = (samples.len() as f32 / sample_rate as f32) / channels as f32;
+    Some((Duration::from_millis((seconds * 1000.0) as u64), samples))
 }
