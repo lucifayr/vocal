@@ -1,6 +1,8 @@
 use std::io;
 
 use audio::{init::init_audio_handler, source_data::SourceData};
+use clap::Parser;
+use events::args::Args;
 use instance::audio_instance::AudioInstance;
 use properties::runtime_properties::RuntimeOptions;
 use tui::{backend::CrosstermBackend, Terminal};
@@ -30,12 +32,19 @@ fn main() -> Result<(), io::Error> {
     sink.set_speed(runtime_options.speed_decimal);
     sink.set_volume(runtime_options.volume_decimal);
 
-    let paths = ["mock_audio/phonk.mp3", "mock_audio/rick.mp3"];
+    let args = Args::parse();
+    let paths: Vec<String> = match args.play {
+        Some(audio) => audio,
+        None => vec![
+            "mock_audio/phonk.mp3".to_owned(),
+            "mock_audio/rick.mp3".to_owned(),
+        ],
+    };
 
     for path in paths {
-        match AudioInstance::new(path) {
+        match AudioInstance::new(path.as_str()) {
             Some(mut instance) => {
-                let source = match SourceData::get_source(path) {
+                let source = match SourceData::get_source(path.as_str()) {
                     Some(source) => source,
                     None => break,
                 };
