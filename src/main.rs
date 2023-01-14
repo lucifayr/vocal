@@ -35,10 +35,13 @@ fn main() -> Result<(), io::Error> {
     let args = Args::parse();
     let paths: Vec<String> = match args.play {
         Some(audio) => audio,
-        None => vec![
-            "mock_audio/phonk.mp3".to_owned(),
-            "mock_audio/rick.mp3".to_owned(),
-        ],
+        None => match args.load {
+            Some(audio) => audio,
+            None => vec![
+                "mock_audio/phonk.mp3".to_owned(),
+                "mock_audio/rick.mp3".to_owned(),
+            ],
+        },
     };
 
     for path in paths {
