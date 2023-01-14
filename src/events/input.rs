@@ -2,10 +2,11 @@ use std::time::Duration;
 
 use crossterm::event::{poll, read, Event, KeyCode};
 use rodio::Sink;
+use tui::widgets::ListState;
 
 use crate::properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions};
 
-pub fn pull_input(
+pub fn pull_input_while_playing(
     sink: &Sink,
     runtime_options: &mut RuntimeOptions,
     audio_options: &mut AudioOptions,
@@ -66,6 +67,40 @@ pub fn pull_input(
                         } else {
                             sink.set_volume(runtime_options.volume_decimal);
                             runtime_options.is_muted = false;
+                        }
+                    }
+                    _ => {}
+                },
+                _ => {}
+            },
+            Err(_) => {}
+        }
+    }
+}
+
+pub fn pull_input_while_listing<T>(list_state: &mut ListState, items: Vec<T>) {
+    if poll(Duration::from_millis(1)).unwrap_or(false) {
+        match read() {
+            Ok(read_event) => match read_event {
+                Event::Key(key_event) => match key_event.code {
+                    KeyCode::Up => {
+                        if let Some(selected) = list_state.selected() {
+                            let amount = items.len();
+                            if selected > 0 {
+                                list_state.select(Some(selected - 1));
+                            } else {
+                                list_state.select(Some(amount - 1));
+                            }
+                        }
+                    }
+                    KeyCode::Down => {
+                        if let Some(selected) = list_state.selected() {
+                            let amount = items.len();
+                            if selected >= amount - 1 {
+                                list_state.select(Some(0));
+                            } else {
+                                list_state.select(Some(selected + 1));
+                            }
                         }
                     }
                     _ => {}

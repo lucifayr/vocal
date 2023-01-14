@@ -4,7 +4,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use rodio::{Decoder, Sink, Source};
 use tui::{
     backend::Backend,
@@ -14,7 +13,7 @@ use tui::{
 
 use crate::{
     audio::source_data::SourceData,
-    events::input::pull_input,
+    events::input::pull_input_while_playing,
     properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
     render::{
         bar::draw_bar,
@@ -63,11 +62,6 @@ impl AudioInstance {
             Err(_) => return Err("Failed to get terminal size"),
         };
 
-        match enable_raw_mode() {
-            Ok(_) => {}
-            Err(_) => return Err("Failed to enable raw keyboard mod"),
-        }
-
         let interval = 16;
         let sample_rate = source.sample_rate();
         let step = (sample_rate * interval) as f32 / 1000.0;
@@ -89,10 +83,7 @@ impl AudioInstance {
             let progress =
                 self.audio_options.passed_time / self.audio_options.duration.as_secs_f64();
             if progress > 1.0 {
-                return match disable_raw_mode() {
-                    Ok(_) => Ok(()),
-                    Err(_) => return Err("Failed to disable raw keyboard mod"),
-                };
+                return Ok(());
             }
 
             let start = (progress * self.source_data.samples.len() as f64) as usize;
@@ -154,7 +145,7 @@ impl AudioInstance {
             }
 
             loop {
-                pull_input(&sink, runtime_options, &mut self.audio_options);
+                pull_input_while_playing(&sink, runtime_options, &mut self.audio_options);
                 if !self.audio_options.is_paused {
                     break;
                 }
