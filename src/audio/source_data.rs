@@ -2,7 +2,6 @@ use rodio::{Decoder, Source};
 use std::{fs::File, time::Duration};
 
 pub struct SourceData {
-    pub source: Decoder<File>,
     pub samples: Vec<f32>,
     pub duration: Duration,
     pub path: String,
@@ -15,26 +14,27 @@ impl SourceData {
             None => return None,
         };
 
-        let file = match std::fs::File::open(path) {
-            Ok(file) => file,
-            Err(_) => return None,
-        };
-
-        let source = match Decoder::new(file) {
-            Ok(source) => source,
-            Err(_) => return None,
-        };
-
         Some(SourceData {
-            source,
             duration,
             samples,
             path: path.to_owned(),
         })
     }
+
+    pub fn get_source(path: &str) -> Option<Decoder<File>> {
+        let file = match std::fs::File::open(path) {
+            Ok(file) => file,
+            Err(_) => return None,
+        };
+
+        match Decoder::new(file) {
+            Ok(source) => Some(source),
+            Err(_) => None,
+        }
+    }
 }
 
-pub fn get_duration_and_samples(path: &str) -> Option<(Duration, Vec<f32>)> {
+fn get_duration_and_samples(path: &str) -> Option<(Duration, Vec<f32>)> {
     let file = match std::fs::File::open(path) {
         Ok(file) => file,
         Err(_) => return None,
