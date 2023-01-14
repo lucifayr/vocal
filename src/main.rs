@@ -9,6 +9,7 @@ use properties::runtime_properties::RuntimeOptions;
 use render::list::draw_list;
 use tui::{
     backend::CrosstermBackend,
+    layout::{Constraint, Direction, Layout},
     widgets::{ListItem, ListState},
     Terminal,
 };
@@ -67,6 +68,11 @@ fn main() -> Result<(), &'static str> {
             }
         }
         None => {
+            match terminal.clear() {
+                Ok(_) => {}
+                Err(_) => return Err("Failed to clear terminal"),
+            }
+
             let paths = match args.load {
                 Some(audio) => audio,
                 None => vec![
@@ -87,13 +93,19 @@ fn main() -> Result<(), &'static str> {
 
             loop {
                 match terminal.draw(|rect| {
+                    let chunks = Layout::default()
+                        .direction(Direction::Vertical)
+                        .margin(1)
+                        .constraints([Constraint::Percentage(100)].as_ref())
+                        .split(rect.size());
+
                     rect.render_stateful_widget(
                         draw_list(
                             items.clone(),
                             tui::style::Color::Red,
                             tui::style::Color::LightCyan,
                         ),
-                        rect.size(),
+                        chunks[0],
                         &mut list_state,
                     );
                 }) {
