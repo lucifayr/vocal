@@ -72,8 +72,6 @@ impl AudioInstance {
         let sample_rate = source.sample_rate();
         let step = (sample_rate * interval) as f32 / 1000.0;
 
-        sink.set_speed(runtime_options.speed_decimal);
-        sink.set_volume(runtime_options.volume_decimal);
         sink.append(source);
 
         loop {

@@ -27,6 +27,8 @@ fn main() -> Result<(), io::Error> {
     let mut terminal = Terminal::new(backend)?;
 
     let mut runtime_options = RuntimeOptions::new(50, 100);
+    sink.set_speed(runtime_options.speed_decimal);
+    sink.set_volume(runtime_options.volume_decimal);
 
     let paths = ["mock_audio/phonk.mp3", "mock_audio/rick.mp3"];
 
