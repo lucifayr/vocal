@@ -15,6 +15,11 @@ make install
 
 ## Configuration
 
+### Content 
+- [color](#color)
+- [highlight_color](#highlight_color)
+- [audio_directory](#audio_directory)
+
 ### color 
 
 ##### Description
@@ -26,21 +31,23 @@ color = 'blue'
 ```
 
 ##### Valid Values
-- black/Black
-- red/Red
-- green/Green
-- yellow/Yellow
-- blue/Blue
-- magenta/Magenta
-- cyan/Cyan
-- gray/Gray
-- lightred/LightRed
-- lightgreen/LightGreen
-- lightyellow/LightYellow
-- lightblue/LightBlue
-- lightmagenta/LightMagenta
-- lightcyan/LightCyan
-- white/White
+|  lower case  |  upper case  |
+| ------------ | ------------ |
+| black        | Black        |
+| red          | Red          |
+| green        | Green        |
+| yellow       | Yellow       |
+| blue         | Blue         |
+| magenta      | Magenta      |
+| cyan         | Cyan         |
+| gray         | Gray         |
+| lightred     | LightRed     |
+| lightgreen   | LightGreen   |
+| lightyellow  | LightYellow  |
+| lightblue    | LightBlue    |
+| lightmagenta | LightMagenta |
+| lightcyan    | LightCyan    |
+| white        | White        |
 
 ### highlight_color
 
@@ -53,21 +60,23 @@ highlight_color = 'magenta'
 ```
 
 ##### Valid Values
-- black/Black
-- red/Red
-- green/Green
-- yellow/Yellow
-- blue/Blue
-- magenta/Magenta
-- cyan/Cyan
-- gray/Gray
-- lightred/LightRed
-- lightgreen/LightGreen
-- lightyellow/LightYellow
-- lightblue/LightBlue
-- lightmagenta/LightMagenta
-- lightcyan/LightCyan
-- white/White
+|  lower case  |  upper case  |
+| ------------ | ------------ |
+| black        | Black        |
+| red          | Red          |
+| green        | Green        |
+| yellow       | Yellow       |
+| blue         | Blue         |
+| magenta      | Magenta      |
+| cyan         | Cyan         |
+| gray         | Gray         |
+| lightred     | LightRed     |
+| lightgreen   | LightGreen   |
+| lightyellow  | LightYellow  |
+| lightblue    | LightBlue    |
+| lightmagenta | LightMagenta |
+| lightcyan    | LightCyan    |
+| white        | White        |
 
 ### audio_directory
 
