@@ -1,3 +1,5 @@
+use std::env;
+
 use serde_derive::{Deserialize, Serialize};
 use tui::style::Color;
 
@@ -5,13 +7,20 @@ use tui::style::Color;
 pub struct Config {
     pub color: String,
     pub highlight_color: String,
+    pub audio_directory: String,
 }
 
 impl std::default::Default for Config {
     fn default() -> Self {
+        let home_directory = match env::var("HOME") {
+            Ok(path) => path,
+            Err(_) => "./vocal".to_owned(),
+        };
+
         Self {
             color: "blue".to_owned(),
             highlight_color: "magenta".to_owned(),
+            audio_directory: format!("{home_directory}/vocal"),
         }
     }
 }

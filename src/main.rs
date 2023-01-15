@@ -1,4 +1,8 @@
-use std::{io, thread, time::Duration};
+use std::{
+    fs::{create_dir_all, read_dir},
+    io, thread,
+    time::Duration,
+};
 
 use audio::{init::init_audio_handler, source_data::SourceData};
 use clap::Parser;
@@ -89,7 +93,18 @@ fn main() -> Result<(), &'static str> {
 
             let paths = match args.load {
                 Some(audio) => audio,
-                None => vec![],
+                None => match create_dir_all(config.clone().audio_directory) {
+                    Ok(_) => match read_dir(config.clone().audio_directory) {
+                        Ok(paths) => paths
+                            .map(|path| match path {
+                                Ok(path) => path.path().display().to_string(),
+                                Err(_) => "".to_owned(),
+                            })
+                            .collect(),
+                        Err(_) => return Err("Failed to open default audio directory"),
+                    },
+                    Err(_) => return Err("Failed to create default audio directory"),
+                },
             };
 
             let items: Vec<ListItem> = paths
