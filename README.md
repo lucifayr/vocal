@@ -1,9 +1,5 @@
 # Vocal
 
-## Content
-- [Description](#description)
-- [Installation](#installation)
-
 ## Description
 Vocal is a terminal app to play music and look cool.
 
