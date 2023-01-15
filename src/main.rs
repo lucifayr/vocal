@@ -75,10 +75,7 @@ fn main() -> Result<(), &'static str> {
 
             let paths = match args.load {
                 Some(audio) => audio,
-                None => vec![
-                    "mock_audio/phonk.mp3".to_owned(),
-                    "mock_audio/rick.mp3".to_owned(),
-                ],
+                None => vec![],
             };
 
             let items: Vec<ListItem> = paths
