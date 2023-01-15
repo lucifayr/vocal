@@ -15,7 +15,7 @@ make install
 
 ## Configuration
 
-### Content 
+### Options 
 - [color](#color)
 - [highlight_color](#highlight_color)
 - [audio_directory](#audio_directory)
@@ -32,7 +32,7 @@ color = 'blue'
 
 ##### Valid Values
 |  lower case  |  upper case  |
-| ------------ | ------------ |
+|:------------:|:------------:|
 | black        | Black        |
 | red          | Red          |
 | green        | Green        |
@@ -61,7 +61,7 @@ highlight_color = 'magenta'
 
 ##### Valid Values
 |  lower case  |  upper case  |
-| ------------ | ------------ |
+|:------------:|:------------:|
 | black        | Black        |
 | red          | Red          |
 | green        | Green        |
