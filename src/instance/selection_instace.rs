@@ -11,7 +11,7 @@ use tui::{
 use crate::{
     input::{config::Config, input::pull_input_while_listing},
     properties::runtime_properties::RuntimeOptions,
-    render::list::draw_list,
+    render::{info::draw_info_no_audio, list::draw_list},
 };
 
 pub struct SelectionInstance {
@@ -55,15 +55,22 @@ impl SelectionInstance {
                     .constraints([Constraint::Percentage(100)].as_ref())
                     .split(rect.size());
 
-                rect.render_stateful_widget(
-                    draw_list(
-                        items.clone(),
-                        config.get_color(),
-                        config.get_highlight_color(),
-                    ),
-                    chunks[0],
-                    &mut self.state,
-                );
+                if items.len() == 0 {
+                    rect.render_widget(
+                        draw_info_no_audio(config.audio_directory.as_str(), config.get_color()),
+                        chunks[0],
+                    )
+                } else {
+                    rect.render_stateful_widget(
+                        draw_list(
+                            items.clone(),
+                            config.get_color(),
+                            config.get_highlight_color(),
+                        ),
+                        chunks[0],
+                        &mut self.state,
+                    );
+                }
             }) {
                 Ok(_) => {}
                 Err(err) => {

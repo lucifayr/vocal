@@ -36,6 +36,16 @@ pub fn draw_info(
     .alignment(Alignment::Center)
 }
 
+pub fn draw_info_no_audio(path_to_audio_directory: &str, color: Color) -> Paragraph {
+    Paragraph::new(Text::styled(
+        format!(
+            "Add some files into {} or pass some paths to the vocal --load command",
+            path_to_audio_directory
+        ),
+        Style::default().fg(color).add_modifier(Modifier::BOLD),
+    ))
+}
+
 fn get_filename_from_path(path: &str) -> Option<&str> {
     path.split("/").last()?.split(".").next()
 }
