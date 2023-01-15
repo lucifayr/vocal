@@ -1,18 +1,12 @@
-use std::{io, thread, time::Duration};
+use std::io;
 
-use tui::{
-    backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
-    widgets::{ListItem, ListState},
-    Terminal,
-};
+use tui::{backend::CrosstermBackend, Terminal};
 
 use crate::{
     audio::init::init_audio_handler,
-    input::{args::Args, config::Config, input::pull_input_while_listing},
-    instance::audio_instance::AudioInstance,
+    input::{args::Args, config::Config},
+    instance::{audio_instance::AudioInstance, selection_instace::SelectionInstance},
     properties::runtime_properties::RuntimeOptions,
-    render::list::draw_list,
 };
 
 pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
@@ -45,11 +39,6 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
             }
         }
         None => {
-            match terminal.clear() {
-                Ok(_) => {}
-                Err(_) => return Err("Failed to clear terminal"),
-            }
-
             let paths = match args.load {
                 Some(audio) => audio,
                 None => {
@@ -60,52 +49,18 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
                 }
             };
 
-            let items: Vec<ListItem> = paths
-                .iter()
-                .map(|path| ListItem::new(path.as_str()))
-                .collect();
+            let mut selection_instance = SelectionInstance::new(paths);
 
-            let mut list_state = ListState::default();
-            list_state.select(Some(0));
-
-            let interval = 16_u64;
-
-            loop {
-                match terminal.draw(|rect| {
-                    let chunks = Layout::default()
-                        .direction(Direction::Vertical)
-                        .margin(1)
-                        .constraints([Constraint::Percentage(100)].as_ref())
-                        .split(rect.size());
-
-                    rect.render_stateful_widget(
-                        draw_list(
-                            items.clone(),
-                            config.get_color(),
-                            config.get_highlight_color(),
-                        ),
-                        chunks[0],
-                        &mut list_state,
-                    );
-                }) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        println!("Failed to render frame: {}", err);
-                    }
-                }
-
-                pull_input_while_listing(
-                    &mut list_state,
-                    paths.clone(),
-                    &mut sink,
-                    &mut runtime_options,
-                    &config,
-                    &mut terminal,
-                );
-                thread::sleep(Duration::from_millis(interval));
+            match selection_instance.show_selection(
+                &mut sink,
+                &mut runtime_options,
+                &config,
+                &mut terminal,
+            ) {
+                Ok(_) => {}
+                Err(err) => return Err(err),
             }
         }
     };
-
     Ok(())
 }
