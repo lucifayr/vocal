@@ -6,10 +6,11 @@ jobs:
   vocal:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Go
-        uses: actions/setup-rust@v3
+      - name: Setup Rust
+        uses: ATiltedTree/setup-rust@v1
         with:
-          rust-version: ">=1.66.0"
+          rust-version: stable
+          components: clippy
 
       - name: Checkout
         uses: actions/checkout@v3
