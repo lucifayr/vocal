@@ -2,9 +2,13 @@ use std::time::Duration;
 
 use crossterm::event::{poll, read, Event, KeyCode};
 use rodio::Sink;
-use tui::widgets::ListState;
+use tui::{backend::Backend, widgets::ListState, Terminal};
 
-use crate::properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions};
+use crate::{
+    audio::source_data::SourceData,
+    instance::audio_instance::AudioInstance,
+    properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
+};
 
 pub fn pull_input_while_playing(
     sink: &Sink,
@@ -78,14 +82,46 @@ pub fn pull_input_while_playing(
     }
 }
 
-pub fn pull_input_while_listing<T>(list_state: &mut ListState, items: Vec<T>) {
+pub fn pull_input_while_listing<B: Backend>(
+    list_state: &mut ListState,
+    content: Vec<String>,
+    sink: &mut Sink,
+    runtime_options: &mut RuntimeOptions,
+    terminal: &mut Terminal<B>,
+) {
     if poll(Duration::from_millis(1)).unwrap_or(false) {
         match read() {
             Ok(read_event) => match read_event {
                 Event::Key(key_event) => match key_event.code {
+                    KeyCode::Enter => {
+                        let index = match list_state.selected() {
+                            Some(index) => index,
+                            None => return,
+                        };
+
+                        let path = match content.get(index) {
+                            Some(path) => path,
+                            None => return,
+                        };
+
+                        match AudioInstance::new(path.as_str()) {
+                            Some(mut instance) => {
+                                let source = match SourceData::get_source(path.as_str()) {
+                                    Some(source) => source,
+                                    None => return,
+                                };
+
+                                match instance.play_audio(sink, source, runtime_options, terminal) {
+                                    Ok(_) => {}
+                                    Err(err) => println!("{err}"),
+                                };
+                            }
+                            None => {}
+                        };
+                    }
                     KeyCode::Up => {
                         if let Some(selected) = list_state.selected() {
-                            let amount = items.len();
+                            let amount = content.len();
                             if selected > 0 {
                                 list_state.select(Some(selected - 1));
                             } else {
@@ -95,7 +131,7 @@ pub fn pull_input_while_listing<T>(list_state: &mut ListState, items: Vec<T>) {
                     }
                     KeyCode::Down => {
                         if let Some(selected) = list_state.selected() {
-                            let amount = items.len();
+                            let amount = content.len();
                             if selected >= amount - 1 {
                                 list_state.select(Some(0));
                             } else {

@@ -115,7 +115,13 @@ fn main() -> Result<(), &'static str> {
                     }
                 }
 
-                pull_input_while_listing(&mut list_state, items.clone());
+                pull_input_while_listing(
+                    &mut list_state,
+                    paths.clone(),
+                    &mut sink,
+                    &mut runtime_options,
+                    &mut terminal,
+                );
                 thread::sleep(Duration::from_millis(interval));
             }
         }
