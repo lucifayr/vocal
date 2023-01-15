@@ -114,7 +114,7 @@ pub fn pull_input_while_listing<B: Backend>(
                             terminal,
                         )
                     }
-                    KeyCode::Up => {
+                    KeyCode::Up | KeyCode::Char('k') => {
                         if let Some(selected) = list_state.selected() {
                             let amount = content.len();
                             if selected > 0 {
@@ -124,7 +124,7 @@ pub fn pull_input_while_listing<B: Backend>(
                             }
                         }
                     }
-                    KeyCode::Down => {
+                    KeyCode::Down | KeyCode::Char('j') => {
                         if let Some(selected) = list_state.selected() {
                             let amount = content.len();
                             if selected >= amount - 1 {
