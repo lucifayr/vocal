@@ -18,7 +18,6 @@ use crate::{
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
-        colors::get_color,
         info::draw_info,
     },
 };
@@ -116,12 +115,7 @@ impl AudioInstance {
                 ) {
                     Some(data) => {
                         rect.render_widget(
-                            draw_chart(
-                                data.as_slice(),
-                                max,
-                                min_sample_size,
-                                get_color(config.color.as_str()),
-                            ),
+                            draw_chart(data.as_slice(), max, min_sample_size, config.get_color()),
                             chunks[0],
                         );
                     }
@@ -136,14 +130,11 @@ impl AudioInstance {
                         runtime_options.speed,
                         self.audio_options.duration.as_secs_f64(),
                         self.audio_options.passed_time,
-                        get_color(config.color.as_str()),
+                        config.get_color(),
                     ),
                     chunks[1],
                 );
-                rect.render_widget(
-                    draw_bar(progress, get_color(config.color.as_str())),
-                    chunks[2],
-                );
+                rect.render_widget(draw_bar(progress, config.get_color()), chunks[2]);
             }) {
                 Ok(_) => {}
                 Err(err) => {

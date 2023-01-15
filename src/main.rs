@@ -6,7 +6,7 @@ use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use input::{args::Args, input::pull_input_while_listing};
 use instance::audio_instance::AudioInstance;
 use properties::runtime_properties::RuntimeOptions;
-use render::{colors::get_color, list::draw_list};
+use render::list::draw_list;
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
@@ -113,8 +113,8 @@ fn main() -> Result<(), &'static str> {
                     rect.render_stateful_widget(
                         draw_list(
                             items.clone(),
-                            get_color(config.color.as_str()),
-                            get_color(config.highlight_color.as_str()),
+                            config.get_color(),
+                            config.get_highlight_color(),
                         ),
                         chunks[0],
                         &mut list_state,
