@@ -102,8 +102,8 @@ fn main() -> Result<(), &'static str> {
                     rect.render_stateful_widget(
                         draw_list(
                             items.clone(),
-                            tui::style::Color::Red,
-                            tui::style::Color::LightCyan,
+                            runtime_options.color,
+                            runtime_options.highlight_color,
                         ),
                         chunks[0],
                         &mut list_state,

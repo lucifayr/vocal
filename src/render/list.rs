@@ -7,5 +7,5 @@ pub fn draw_list<'a>(items: Vec<ListItem<'a>>, color: Color, highlight_color: Co
     List::new(items)
         .block(Block::default().title("Audio").borders(Borders::ALL))
         .style(Style::default().fg(color))
-        .highlight_style(Style::default().fg(color).bg(highlight_color))
+        .highlight_style(Style::default().fg(highlight_color))
 }
