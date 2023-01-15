@@ -1,8 +1,4 @@
-use std::{
-    fs::{create_dir_all, read_dir},
-    io, thread,
-    time::Duration,
-};
+use std::{io, thread, time::Duration};
 
 use tui::{
     backend::CrosstermBackend,
@@ -12,7 +8,7 @@ use tui::{
 };
 
 use crate::{
-    audio::{init::init_audio_handler, source_data::SourceData},
+    audio::init::init_audio_handler,
     input::{args::Args, config::Config, input::pull_input_while_listing},
     instance::audio_instance::AudioInstance,
     properties::runtime_properties::RuntimeOptions,
@@ -39,26 +35,13 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
     match args.play {
         Some(paths) => {
             for path in paths {
-                match AudioInstance::new(path.as_str()) {
-                    Some(mut instance) => {
-                        let source = match SourceData::get_source(path.as_str()) {
-                            Some(source) => source,
-                            None => break,
-                        };
-
-                        match instance.play_audio(
-                            &mut sink,
-                            source,
-                            &mut runtime_options,
-                            &config,
-                            &mut terminal,
-                        ) {
-                            Ok(_) => {}
-                            Err(err) => println!("{err}"),
-                        };
-                    }
-                    None => {}
-                };
+                AudioInstance::start_instance(
+                    path,
+                    &mut sink,
+                    &mut runtime_options,
+                    &config,
+                    &mut terminal,
+                )
             }
         }
         None => {
@@ -69,18 +52,12 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
 
             let paths = match args.load {
                 Some(audio) => audio,
-                None => match create_dir_all(config.clone().audio_directory) {
-                    Ok(_) => match read_dir(config.clone().audio_directory) {
-                        Ok(paths) => paths
-                            .map(|path| match path {
-                                Ok(path) => path.path().display().to_string(),
-                                Err(_) => "".to_owned(),
-                            })
-                            .collect(),
-                        Err(_) => return Err("Failed to open default audio directory"),
-                    },
-                    Err(_) => return Err("Failed to create default audio directory"),
-                },
+                None => {
+                    match Config::get_audio_directory_content(config.audio_directory.as_str()) {
+                        Ok(paths) => paths,
+                        Err(err) => return Err(err),
+                    }
+                }
             };
 
             let items: Vec<ListItem> = paths

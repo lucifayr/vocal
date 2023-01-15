@@ -1,4 +1,7 @@
-use std::env;
+use std::{
+    env,
+    fs::{create_dir_all, read_dir},
+};
 
 use serde_derive::{Deserialize, Serialize};
 use tui::style::Color;
@@ -26,6 +29,21 @@ impl std::default::Default for Config {
 }
 
 impl Config {
+    pub fn get_audio_directory_content(path: &str) -> Result<Vec<String>, &'static str> {
+        match create_dir_all(path) {
+            Ok(_) => match read_dir(path) {
+                Ok(paths) => Ok(paths
+                    .map(|path| match path {
+                        Ok(path) => path.path().display().to_string(),
+                        Err(_) => "???".to_owned(),
+                    })
+                    .collect()),
+                Err(_) => Err("Failed to open default audio directory"),
+            },
+            Err(_) => Err("Failed to create default audio directory"),
+        }
+    }
+
     pub fn get_color(&self) -> Color {
         match self.color.as_str() {
             "black" | "Black" => Color::Black,

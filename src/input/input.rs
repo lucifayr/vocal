@@ -5,7 +5,6 @@ use rodio::Sink;
 use tui::{backend::Backend, widgets::ListState, Terminal};
 
 use crate::{
-    audio::source_data::SourceData,
     instance::audio_instance::AudioInstance,
     properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
 };
@@ -107,26 +106,13 @@ pub fn pull_input_while_listing<B: Backend>(
                             None => return,
                         };
 
-                        match AudioInstance::new(path.as_str()) {
-                            Some(mut instance) => {
-                                let source = match SourceData::get_source(path.as_str()) {
-                                    Some(source) => source,
-                                    None => return,
-                                };
-
-                                match instance.play_audio(
-                                    sink,
-                                    source,
-                                    runtime_options,
-                                    config,
-                                    terminal,
-                                ) {
-                                    Ok(_) => {}
-                                    Err(err) => println!("{err}"),
-                                };
-                            }
-                            None => {}
-                        };
+                        AudioInstance::start_instance(
+                            path.to_owned(),
+                            sink,
+                            runtime_options,
+                            config,
+                            terminal,
+                        )
                     }
                     KeyCode::Up => {
                         if let Some(selected) = list_state.selected() {

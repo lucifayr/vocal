@@ -44,6 +44,29 @@ impl AudioInstance {
         })
     }
 
+    pub fn start_instance<B: Backend>(
+        path: String,
+        sink: &mut Sink,
+        runtime_options: &mut RuntimeOptions,
+        config: &Config,
+        terminal: &mut Terminal<B>,
+    ) {
+        match AudioInstance::new(path.as_str()) {
+            Some(mut instance) => {
+                let source = match SourceData::get_source(path.as_str()) {
+                    Some(source) => source,
+                    None => return,
+                };
+
+                match instance.play_audio(sink, source, runtime_options, &config, terminal) {
+                    Ok(_) => {}
+                    Err(err) => println!("{err}"),
+                };
+            }
+            None => {}
+        };
+    }
+
     pub fn play_audio<B: Backend>(
         &mut self,
         sink: &mut Sink,
