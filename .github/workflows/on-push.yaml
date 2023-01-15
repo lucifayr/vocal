@@ -1,0 +1,24 @@
+name: on-push
+on:
+  push:
+    branches: [main]
+jobs:
+  vocal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-rust@v3
+        with:
+          rust-version: ">=1.66.0"
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Lint
+        run: cargo check
+
+      - name: Test
+        run: cargo test
+
+      - name: Build Release
+        run: cargo build --release
