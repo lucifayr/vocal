@@ -3,10 +3,10 @@ use std::{io, thread, time::Duration};
 use audio::{init::init_audio_handler, source_data::SourceData};
 use clap::Parser;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use events::{args::Args, input::pull_input_while_listing};
+use input::{args::Args, input::pull_input_while_listing};
 use instance::audio_instance::AudioInstance;
 use properties::runtime_properties::RuntimeOptions;
-use render::list::draw_list;
+use render::{colors::get_color, list::draw_list};
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
@@ -14,13 +14,26 @@ use tui::{
     Terminal,
 };
 
+use crate::input::config::Config;
+
 mod audio;
-mod events;
+mod input;
 mod instance;
 mod properties;
 mod render;
 
 fn main() -> Result<(), &'static str> {
+    let config = match confy::load("vocal", "config") {
+        Ok(config) => config,
+        Err(_) => {
+            let config = Config::default();
+            match confy::store("vocal", "config", config.clone()) {
+                Ok(_) => config,
+                Err(_) => return Err("Failed to load config"),
+            }
+        }
+    };
+
     match enable_raw_mode() {
         Ok(_) => {}
         Err(_) => return Err("Failed to enable raw keyboard mod"),
@@ -57,6 +70,7 @@ fn main() -> Result<(), &'static str> {
                             &mut sink,
                             source,
                             &mut runtime_options,
+                            &config,
                             &mut terminal,
                         ) {
                             Ok(_) => {}
@@ -99,8 +113,8 @@ fn main() -> Result<(), &'static str> {
                     rect.render_stateful_widget(
                         draw_list(
                             items.clone(),
-                            runtime_options.color,
-                            runtime_options.highlight_color,
+                            get_color(config.color.as_str()),
+                            get_color(config.highlight_color.as_str()),
                         ),
                         chunks[0],
                         &mut list_state,
@@ -117,6 +131,7 @@ fn main() -> Result<(), &'static str> {
                     paths.clone(),
                     &mut sink,
                     &mut runtime_options,
+                    &config,
                     &mut terminal,
                 );
                 thread::sleep(Duration::from_millis(interval));

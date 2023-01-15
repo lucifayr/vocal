@@ -13,11 +13,12 @@ use tui::{
 
 use crate::{
     audio::source_data::SourceData,
-    events::input::pull_input_while_playing,
+    input::{config::Config, input::pull_input_while_playing},
     properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
+        colors::get_color,
         info::draw_info,
     },
 };
@@ -49,6 +50,7 @@ impl AudioInstance {
         sink: &mut Sink,
         source: Decoder<File>,
         runtime_options: &mut RuntimeOptions,
+        config: &Config,
         terminal: &mut Terminal<B>,
     ) -> Result<(), &str> {
         match terminal.clear() {
@@ -118,7 +120,7 @@ impl AudioInstance {
                                 data.as_slice(),
                                 max,
                                 min_sample_size,
-                                runtime_options.color,
+                                get_color(config.color.as_str()),
                             ),
                             chunks[0],
                         );
@@ -134,11 +136,14 @@ impl AudioInstance {
                         runtime_options.speed,
                         self.audio_options.duration.as_secs_f64(),
                         self.audio_options.passed_time,
-                        runtime_options.color,
+                        get_color(config.color.as_str()),
                     ),
                     chunks[1],
                 );
-                rect.render_widget(draw_bar(progress, runtime_options.color), chunks[2]);
+                rect.render_widget(
+                    draw_bar(progress, get_color(config.color.as_str())),
+                    chunks[2],
+                );
             }) {
                 Ok(_) => {}
                 Err(err) => {

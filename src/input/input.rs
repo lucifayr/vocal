@@ -10,6 +10,8 @@ use crate::{
     properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
 };
 
+use super::config::Config;
+
 pub fn pull_input_while_playing(
     sink: &Sink,
     runtime_options: &mut RuntimeOptions,
@@ -87,6 +89,7 @@ pub fn pull_input_while_listing<B: Backend>(
     content: Vec<String>,
     sink: &mut Sink,
     runtime_options: &mut RuntimeOptions,
+    config: &Config,
     terminal: &mut Terminal<B>,
 ) {
     if poll(Duration::from_millis(1)).unwrap_or(false) {
@@ -111,7 +114,13 @@ pub fn pull_input_while_listing<B: Backend>(
                                     None => return,
                                 };
 
-                                match instance.play_audio(sink, source, runtime_options, terminal) {
+                                match instance.play_audio(
+                                    sink,
+                                    source,
+                                    runtime_options,
+                                    config,
+                                    terminal,
+                                ) {
                                     Ok(_) => {}
                                     Err(err) => println!("{err}"),
                                 };
