@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{process::exit, time::Duration};
 
 use crossterm::event::{poll, read, Event, KeyCode};
 use rodio::Sink;
@@ -20,6 +20,9 @@ pub fn pull_input_while_playing(
         match read() {
             Ok(read_event) => match read_event {
                 Event::Key(key_event) => match key_event.code {
+                    KeyCode::Char('q') => {
+                        exit(0);
+                    }
                     KeyCode::Char(' ') => {
                         audio_options.is_paused = !audio_options.is_paused;
                         if audio_options.is_paused {
@@ -95,6 +98,9 @@ pub fn pull_input_while_listing<B: Backend>(
         match read() {
             Ok(read_event) => match read_event {
                 Event::Key(key_event) => match key_event.code {
+                    KeyCode::Char('q') => {
+                        exit(0);
+                    }
                     KeyCode::Enter => {
                         let index = match list_state.selected() {
                             Some(index) => index,
