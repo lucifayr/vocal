@@ -1,6 +1,9 @@
 use std::{process::exit, time::Duration};
 
-use crossterm::event::{poll, read, Event, KeyCode};
+use crossterm::{
+    event::{poll, read, Event, KeyCode},
+    terminal::disable_raw_mode,
+};
 use rodio::Sink;
 use tui::{backend::Backend, widgets::ListState, Terminal};
 
@@ -21,6 +24,7 @@ pub fn pull_input_while_playing(
             Ok(read_event) => match read_event {
                 Event::Key(key_event) => match key_event.code {
                     KeyCode::Char('q') => {
+                        disable_raw_mode().unwrap();
                         exit(0);
                     }
                     KeyCode::Char(' ') => {
@@ -99,6 +103,7 @@ pub fn pull_input_while_listing<B: Backend>(
             Ok(read_event) => match read_event {
                 Event::Key(key_event) => match key_event.code {
                     KeyCode::Char('q') => {
+                        disable_raw_mode().unwrap();
                         exit(0);
                     }
                     KeyCode::Enter => {

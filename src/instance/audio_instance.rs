@@ -117,8 +117,8 @@ impl AudioInstance {
                     .margin(2)
                     .constraints(
                         [
-                            Constraint::Length(size.height / 2),
-                            Constraint::Length((3 * size.height) / 8),
+                            Constraint::Length((5 * size.height) / 8),
+                            Constraint::Length((2 * size.height) / 8),
                             Constraint::Max(size.height / 8),
                         ]
                         .as_ref(),
@@ -126,7 +126,7 @@ impl AudioInstance {
                     .split(size);
 
                 let max = 10000;
-                let min_sample_size = 0.3;
+                let multiplier = 100_f32;
 
                 match create_data_from_samples(
                     self.source_data.samples.clone(),
@@ -134,11 +134,15 @@ impl AudioInstance {
                     step as usize,
                     bar_count,
                     max,
-                    min_sample_size,
+                    multiplier,
                 ) {
                     Some(data) => {
                         rect.render_widget(
-                            draw_chart(data.as_slice(), max, min_sample_size, config.get_color()),
+                            draw_chart(
+                                data.as_slice(),
+                                max * multiplier as u64,
+                                config.get_color(),
+                            ),
                             chunks[0],
                         );
                     }

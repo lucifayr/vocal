@@ -3,12 +3,7 @@ use tui::{
     widgets::{BarChart, Block, Borders},
 };
 
-pub fn draw_chart<'a>(
-    data: &'a [(&'a str, u64)],
-    max: u64,
-    min_sample_size: f32,
-    color: Color,
-) -> BarChart<'a> {
+pub fn draw_chart<'a>(data: &'a [(&'a str, u64)], max: u64, color: Color) -> BarChart<'a> {
     BarChart::default()
         .block(Block::default().borders(Borders::BOTTOM))
         .bar_width(3)
@@ -17,7 +12,7 @@ pub fn draw_chart<'a>(
         .value_style(Style::default().fg(color).bg(color))
         .label_style(Style::default())
         .data(data)
-        .max((max as f32 * (1.0 + min_sample_size)) as u64)
+        .max(max)
 }
 
 pub fn create_data_from_samples<'a>(
@@ -26,18 +21,17 @@ pub fn create_data_from_samples<'a>(
     step: usize,
     bar_count: usize,
     max: u64,
-    min_sample_size: f32,
+    multiplier: f32,
 ) -> Option<Vec<(&'a str, u64)>> {
-    let reduced_samples =
-        match reduce_sample_to_slice(samples, start, step as usize, bar_count, min_sample_size) {
-            Ok(samples) => samples,
-            Err(_) => return None,
-        };
+    let reduced_samples = match reduce_sample_to_slice(samples, start, step as usize, bar_count) {
+        Ok(samples) => samples,
+        Err(_) => return None,
+    };
 
     Some(
         reduced_samples
             .iter()
-            .map(|sample| ("", (max as f32 * (1.0 + min_sample_size) * sample) as u64))
+            .map(|sample| ("", (max as f32 * multiplier * sample) as u64))
             .collect::<Vec<(&str, u64)>>(),
     )
 }
@@ -47,14 +41,13 @@ fn reduce_sample_to_slice(
     start: usize,
     step: usize,
     bar_count: usize,
-    min_sample_size: f32,
 ) -> Result<Vec<f32>, ()> {
     let sample_slice: Vec<f32> = samples
         .clone()
         .iter()
         .skip(start)
         .take(step)
-        .map(|s| *s + min_sample_size)
+        .map(|s| ((*s + 1_f32) / 2_f32))
         .collect();
 
     let chunk_size = match sample_slice.len() / bar_count {
