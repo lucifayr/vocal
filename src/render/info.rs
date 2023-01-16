@@ -61,7 +61,7 @@ pub fn draw_info_no_audio(path_to_audio_directory: &str, color: Color) -> Paragr
     ))
 }
 
-fn get_filename_from_path(path: &str) -> Option<&str> {
+pub fn get_filename_from_path(path: &str) -> Option<&str> {
     path.split("/").last()?.split(".").next()
 }
 

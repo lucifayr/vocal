@@ -5,10 +5,10 @@ use crossterm::{
     terminal::disable_raw_mode,
 };
 use rodio::Sink;
-use tui::{backend::Backend, widgets::ListState, Terminal};
+use tui::{backend::Backend, Terminal};
 
 use crate::{
-    instance::audio_instance::AudioInstance,
+    instance::{audio_instance::AudioInstance, selection_instace::SelectionInstance},
     properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
 };
 
@@ -91,8 +91,7 @@ pub fn pull_input_while_playing(
 }
 
 pub fn pull_input_while_listing<B: Backend>(
-    list_state: &mut ListState,
-    content: Vec<String>,
+    instance: &mut SelectionInstance,
     sink: &mut Sink,
     runtime_options: &mut RuntimeOptions,
     config: &Config,
@@ -107,44 +106,16 @@ pub fn pull_input_while_listing<B: Backend>(
                         exit(0);
                     }
                     KeyCode::Enter => {
-                        let index = match list_state.selected() {
-                            Some(index) => index,
-                            None => return,
-                        };
-
-                        let path = match content.get(index) {
-                            Some(path) => path,
-                            None => return,
-                        };
-
-                        AudioInstance::start_instance(
-                            path.to_owned(),
-                            sink,
-                            runtime_options,
-                            config,
-                            terminal,
-                        )
+                        add_to_queue(instance, true);
+                        play_queue(instance, sink, runtime_options, config, terminal);
                     }
-                    KeyCode::Up | KeyCode::Char('k') => {
-                        if let Some(selected) = list_state.selected() {
-                            let amount = content.len();
-                            if selected > 0 {
-                                list_state.select(Some(selected - 1));
-                            } else {
-                                list_state.select(Some(amount - 1));
-                            }
-                        }
+                    KeyCode::Char('p') => {
+                        play_queue(instance, sink, runtime_options, config, terminal)
                     }
-                    KeyCode::Down | KeyCode::Char('j') => {
-                        if let Some(selected) = list_state.selected() {
-                            let amount = content.len();
-                            if selected >= amount - 1 {
-                                list_state.select(Some(0));
-                            } else {
-                                list_state.select(Some(selected + 1));
-                            }
-                        }
-                    }
+                    KeyCode::Up | KeyCode::Char('k') => move_up(instance),
+                    KeyCode::Down | KeyCode::Char('j') => move_down(instance),
+                    KeyCode::Right | KeyCode::Char('l') => add_to_queue(instance, false),
+                    KeyCode::Left | KeyCode::Char('h') => remove_from_queue(instance),
                     _ => {}
                 },
                 _ => {}
@@ -152,4 +123,68 @@ pub fn pull_input_while_listing<B: Backend>(
             Err(_) => {}
         }
     }
+}
+
+fn move_up(instance: &mut SelectionInstance) {
+    if let Some(selected) = instance.state.selected() {
+        let amount = instance.content.len();
+        if selected > 0 {
+            instance.state.select(Some(selected - 1));
+        } else {
+            instance.state.select(Some(amount - 1));
+        }
+    }
+}
+
+fn move_down(instance: &mut SelectionInstance) {
+    if let Some(selected) = instance.state.selected() {
+        let amount = instance.content.len();
+        if selected >= amount - 1 {
+            instance.state.select(Some(0));
+        } else {
+            instance.state.select(Some(selected + 1));
+        }
+    }
+}
+
+fn remove_from_queue(instance: &mut SelectionInstance) {
+    if let Some(selected) = instance.state.selected() {
+        match instance.content.get(selected) {
+            Some(item) => {
+                if let Some(index) = instance.queue.iter().position(|element| element == item) {
+                    instance.queue.remove(index);
+                }
+            }
+            None => {}
+        };
+    }
+}
+
+fn add_to_queue(instance: &mut SelectionInstance, at_start: bool) {
+    if let Some(selected) = instance.state.selected() {
+        match instance.content.get(selected) {
+            Some(item) => {
+                if !instance.queue.contains(item) {
+                    if at_start {
+                        instance.queue.splice(0..0, vec![item.to_owned()]);
+                    } else {
+                        instance.queue.push(item.to_owned())
+                    }
+                }
+            }
+            None => {}
+        };
+    }
+}
+
+fn play_queue<B: Backend>(
+    instance: &mut SelectionInstance,
+    sink: &mut Sink,
+    runtime_options: &mut RuntimeOptions,
+    config: &Config,
+    terminal: &mut Terminal<B>,
+) {
+    instance.queue.iter().for_each(|path| {
+        AudioInstance::start_instance(path.to_owned(), sink, runtime_options, config, terminal)
+    })
 }
