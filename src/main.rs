@@ -1,16 +1,16 @@
 use clap::Parser;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use input::args::Args;
 use run::run;
+use user_input::args::Args;
 
-use crate::input::config::Config;
+use crate::user_input::config::Config;
 
 mod audio;
-mod input;
 mod instance;
 mod properties;
 mod render;
 mod run;
+mod user_input;
 
 fn main() -> Result<(), &'static str> {
     let config = match confy::load("vocal", "config") {

@@ -4,9 +4,9 @@ use tui::{backend::CrosstermBackend, Terminal};
 
 use crate::{
     audio::init::init_audio_handler,
-    input::{args::Args, config::Config},
     instance::{audio_instance::AudioInstance, selection_instace::SelectionInstance},
     properties::runtime_properties::RuntimeOptions,
+    user_input::{args::Args, config::Config},
 };
 
 pub fn run(config: Config, args: Args) -> Result<(), &'static str> {

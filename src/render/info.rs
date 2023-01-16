@@ -14,10 +14,7 @@ pub fn draw_info(
     passed_time: f64,
     color: Color,
 ) -> Paragraph {
-    let name = match get_filename_from_path(path) {
-        Some(name) => name,
-        None => "???",
-    };
+    let name = get_filename_from_path(path).unwrap_or("???");
 
     let mute_symbol = if is_muted { "✗" } else { "" };
 
@@ -62,7 +59,7 @@ pub fn draw_info_no_audio(path_to_audio_directory: &str, color: Color) -> Paragr
 }
 
 pub fn get_filename_from_path(path: &str) -> Option<&str> {
-    path.split("/").last()?.split(".").next()
+    path.split('/').last()?.split('.').next()
 }
 
 #[test]

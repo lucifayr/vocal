@@ -23,7 +23,7 @@ pub fn create_data_from_samples<'a>(
     max: u64,
     multiplier: f32,
 ) -> Option<Vec<(&'a str, u64)>> {
-    let reduced_samples = match reduce_sample_to_slice(samples, start, step as usize, bar_count) {
+    let reduced_samples = match reduce_sample_to_slice(samples, start, step, bar_count) {
         Ok(samples) => samples,
         Err(_) => return None,
     };
@@ -43,7 +43,6 @@ fn reduce_sample_to_slice(
     bar_count: usize,
 ) -> Result<Vec<f32>, ()> {
     let sample_slice: Vec<f32> = samples
-        .clone()
         .iter()
         .skip(start)
         .take(step)

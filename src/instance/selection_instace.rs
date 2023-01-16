@@ -9,12 +9,12 @@ use tui::{
 };
 
 use crate::{
-    input::{config::Config, input::pull_input_while_listing},
     properties::runtime_properties::RuntimeOptions,
     render::{
         info::{draw_info_no_audio, get_filename_from_path},
         list::draw_list,
     },
+    user_input::{config::Config, input::pull_input_while_listing},
 };
 
 pub struct SelectionInstance {
@@ -50,12 +50,7 @@ impl SelectionInstance {
         let content = self.content.clone();
         let items: Vec<ListItem> = content
             .iter()
-            .map(|path| {
-                ListItem::new(match get_filename_from_path(path.as_str()) {
-                    Some(path) => path,
-                    None => "???",
-                })
-            })
+            .map(|path| ListItem::new(get_filename_from_path(path.as_str()).unwrap_or("???")))
             .collect();
 
         let interval = 16_u64;
@@ -64,12 +59,7 @@ impl SelectionInstance {
             let queue = self.queue.clone();
             let queue_items: Vec<ListItem> = queue
                 .iter()
-                .map(|path| {
-                    ListItem::new(match get_filename_from_path(path.as_str()) {
-                        Some(path) => path,
-                        None => "???",
-                    })
-                })
+                .map(|path| ListItem::new(get_filename_from_path(path.as_str()).unwrap_or("???")))
                 .collect();
 
             match terminal.draw(|rect| {
@@ -79,7 +69,7 @@ impl SelectionInstance {
                     .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
                     .split(rect.size());
 
-                if items.len() == 0 {
+                if items.is_empty() {
                     rect.render_widget(
                         draw_info_no_audio(config.audio_directory.as_str(), config.get_color()),
                         chunks[0],
@@ -112,7 +102,7 @@ impl SelectionInstance {
                 }
             }
 
-            pull_input_while_listing(self, sink, runtime_options, &config, terminal);
+            pull_input_while_listing(self, sink, runtime_options, config, terminal);
             thread::sleep(Duration::from_millis(interval));
         }
     }

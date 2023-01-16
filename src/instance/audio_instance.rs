@@ -13,13 +13,13 @@ use tui::{
 
 use crate::{
     audio::source_data::SourceData,
-    input::{config::Config, input::pull_input_while_playing},
     properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
         info::draw_info,
     },
+    user_input::{config::Config, input::pull_input_while_playing},
 };
 
 pub struct AudioInstance {
@@ -51,19 +51,16 @@ impl AudioInstance {
         config: &Config,
         terminal: &mut Terminal<B>,
     ) {
-        match AudioInstance::new(path.as_str()) {
-            Some(mut instance) => {
-                let source = match SourceData::get_source(path.as_str()) {
-                    Some(source) => source,
-                    None => return,
-                };
+        if let Some(mut instance) = AudioInstance::new(path.as_str()) {
+            let source = match SourceData::get_source(path.as_str()) {
+                Some(source) => source,
+                None => return,
+            };
 
-                match instance.play_audio(sink, source, runtime_options, &config, terminal) {
-                    Ok(_) => {}
-                    Err(err) => println!("{err}"),
-                };
-            }
-            None => {}
+            match instance.play_audio(sink, source, runtime_options, config, terminal) {
+                Ok(_) => {}
+                Err(err) => println!("{err}"),
+            };
         };
     }
 
@@ -128,7 +125,7 @@ impl AudioInstance {
                 let max = 10000;
                 let multiplier = 100_f32;
 
-                match create_data_from_samples(
+                if let Some(data) = create_data_from_samples(
                     self.source_data.samples.clone(),
                     start,
                     step as usize,
@@ -136,18 +133,11 @@ impl AudioInstance {
                     max,
                     multiplier,
                 ) {
-                    Some(data) => {
-                        rect.render_widget(
-                            draw_chart(
-                                data.as_slice(),
-                                max * multiplier as u64,
-                                config.get_color(),
-                            ),
-                            chunks[0],
-                        );
-                    }
-                    None => {}
-                };
+                    rect.render_widget(
+                        draw_chart(data.as_slice(), max * multiplier as u64, config.get_color()),
+                        chunks[0],
+                    );
+                }
 
                 rect.render_widget(
                     draw_info(
@@ -170,7 +160,7 @@ impl AudioInstance {
             }
 
             loop {
-                pull_input_while_playing(&sink, runtime_options, &mut self.audio_options);
+                pull_input_while_playing(sink, runtime_options, &mut self.audio_options);
                 if !self.audio_options.is_paused {
                     break;
                 }
