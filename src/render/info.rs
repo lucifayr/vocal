@@ -21,15 +21,30 @@ pub fn draw_info(
 
     let mute_symbol = if is_muted { "✗" } else { "" };
 
+    let duration_hours = (duration_secs / 3600_f64).round();
+    let duration_min = (duration_secs / 60_f64).round();
+    let duration_seconds = (duration_secs.round() as i64) % 60;
+
+    let passed_hours = (passed_time / 3600_f64).round();
+    let passed_min = (passed_time / 60_f64).round();
+    let passed_seconds = (passed_time.round() as i64) % 60;
+
+    let speed_multiplier = speed as f32 / 100_f32;
+
     Paragraph::new(Text::styled(
         format!(
-            "Playing: {}\n\nVolume: {} {}\nPlayback Speed: {}\nDuration: {}s\nPlayed: {}s\n",
+            "Playing: {}\n\nVolume: {}% {}\nPlayback Speed: {:0.2}X\nDuration: {:02}:{:02}:{:02}\nPlayed: {:02}:{:02}:{:02}\n",
             name,
             volume,
             mute_symbol,
-            speed,
-            duration_secs.round(),
-            passed_time.round()
+            speed_multiplier,
+            duration_hours,
+            duration_min,
+            duration_seconds,
+            passed_hours,
+            passed_min,
+            passed_seconds
+
         ),
         Style::default().fg(color).add_modifier(Modifier::BOLD),
     ))
