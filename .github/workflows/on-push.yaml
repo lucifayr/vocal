@@ -13,7 +13,7 @@ jobs:
           components: clippy
 
       - name: Install alsa
-        run: sudo apt-get install -y alsa-lib
+        run: sudo apt-get install -y alsa-base
 
       - name: Checkout
         uses: actions/checkout@v3
