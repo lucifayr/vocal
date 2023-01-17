@@ -12,9 +12,12 @@ use crate::{
     properties::runtime_properties::RuntimeOptions,
     render::{
         info::{draw_info_no_audio, get_filename_from_path},
+        keys::draw_keys,
         list::draw_list,
     },
-    user_input::{config::Config, input::pull_input_while_listing},
+    user_input::{
+        config::Config, input::pull_input_while_listing, keybindings::SelectionKeybindings,
+    },
 };
 
 pub struct SelectionInstance {
@@ -63,16 +66,20 @@ impl SelectionInstance {
                 .collect();
 
             match terminal.draw(|rect| {
-                let chunks = Layout::default()
-                    .direction(Direction::Horizontal)
-                    .margin(1)
-                    .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
+                let chunks_vertical = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(90), Constraint::Percentage(10)].as_ref())
                     .split(rect.size());
+
+                let chunks_horizontal = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
+                    .split(chunks_vertical[0]);
 
                 if items.is_empty() {
                     rect.render_widget(
                         draw_info_no_audio(config.audio_directory.as_str(), config.get_color()),
-                        chunks[0],
+                        rect.size(),
                     )
                 } else {
                     rect.render_stateful_widget(
@@ -82,7 +89,7 @@ impl SelectionInstance {
                             config.get_color(),
                             config.get_highlight_color(),
                         ),
-                        chunks[0],
+                        chunks_horizontal[0],
                         &mut self.state,
                     );
                     rect.render_widget(
@@ -92,8 +99,15 @@ impl SelectionInstance {
                             config.get_color(),
                             config.get_highlight_color(),
                         ),
-                        chunks[1],
-                    )
+                        chunks_horizontal[1],
+                    );
+                    rect.render_widget(
+                        draw_keys(
+                            SelectionKeybindings::default().get_keybindings().as_slice(),
+                            config.get_color(),
+                        ),
+                        chunks_vertical[1],
+                    );
                 }
             }) {
                 Ok(_) => {}
