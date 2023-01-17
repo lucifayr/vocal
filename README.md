@@ -14,13 +14,9 @@ make install
 ```
 
 #### Issues
-
-##### Fedora
-If you get the error: `Package alsa was not found in pkg-config search path` try 
-installing the `alsa-lib-devel` package with 
-```bash
-sudo dnf install alsa-lib-devel
-```
+| error | fixes |
+|:-----:|:-----:|
+|`Package alsa was not found in pkg-config search path` | try installing the `alsa-lib-devel` package. |
 
 ## Configuration
 
