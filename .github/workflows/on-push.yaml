@@ -13,7 +13,7 @@ jobs:
           components: clippy
 
       - name: Install alsa
-        run: sudo apt install -y alsa-lib-devel
+        run: sudo apt-get install -y libasound2
 
       - name: Checkout
         uses: actions/checkout@v3
