@@ -68,7 +68,7 @@ impl SelectionInstance {
             match terminal.draw(|rect| {
                 let chunks_vertical = Layout::default()
                     .direction(Direction::Vertical)
-                    .constraints([Constraint::Percentage(90), Constraint::Percentage(10)].as_ref())
+                    .constraints([Constraint::Percentage(85), Constraint::Percentage(15)].as_ref())
                     .split(rect.size());
 
                 let chunks_horizontal = Layout::default()

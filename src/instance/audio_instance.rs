@@ -18,8 +18,9 @@ use crate::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
         info::draw_info,
+        keys::draw_keys,
     },
-    user_input::{config::Config, input::pull_input_while_playing},
+    user_input::{config::Config, input::pull_input_while_playing, keybindings::AudioKeybindings},
 };
 
 pub struct AudioInstance {
@@ -111,12 +112,13 @@ impl AudioInstance {
                 let size = rect.size();
                 let chunks = Layout::default()
                     .direction(Direction::Vertical)
-                    .margin(2)
+                    .margin(1)
                     .constraints(
                         [
-                            Constraint::Length((5 * size.height) / 8),
-                            Constraint::Length((2 * size.height) / 8),
-                            Constraint::Max(size.height / 8),
+                            Constraint::Percentage(50),
+                            Constraint::Percentage(25),
+                            Constraint::Percentage(10),
+                            Constraint::Percentage(15),
                         ]
                         .as_ref(),
                     )
@@ -152,6 +154,14 @@ impl AudioInstance {
                     chunks[1],
                 );
                 rect.render_widget(draw_bar(progress, config.get_color()), chunks[2]);
+
+                rect.render_widget(
+                    draw_keys(
+                        AudioKeybindings::default().get_keybindings().as_slice(),
+                        config.get_color(),
+                    ),
+                    chunks[3],
+                );
             }) {
                 Ok(_) => {}
                 Err(err) => {

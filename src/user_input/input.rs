@@ -34,7 +34,7 @@ pub fn pull_input_while_playing(
                         sink.play();
                     }
                 }
-                KeyCode::Up => {
+                KeyCode::Up | KeyCode::Char('k') => {
                     if runtime_options.volume < 100 {
                         runtime_options.volume += 5;
                         runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
@@ -43,7 +43,7 @@ pub fn pull_input_while_playing(
                         }
                     }
                 }
-                KeyCode::Down => {
+                KeyCode::Down | KeyCode::Char('j') => {
                     if runtime_options.volume > 0 {
                         runtime_options.volume -= 5;
                         runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
@@ -52,14 +52,14 @@ pub fn pull_input_while_playing(
                         }
                     }
                 }
-                KeyCode::Char('k') => {
+                KeyCode::Right | KeyCode::Char('l') => {
                     if runtime_options.speed < 200 {
                         runtime_options.speed += 5;
                         runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
                         sink.set_speed(runtime_options.speed_decimal);
                     }
                 }
-                KeyCode::Char('j') => {
+                KeyCode::Left | KeyCode::Char('h') => {
                     if runtime_options.speed > 50 {
                         runtime_options.speed -= 5;
                         runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;

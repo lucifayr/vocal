@@ -2,7 +2,7 @@ use tui::{
     layout::Alignment,
     style::{Color, Style},
     text::Text,
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Paragraph, Wrap},
 };
 
 pub fn draw_keys<'a>(content: &'a [(&'a str, &'a str)], color: Color) -> Paragraph {
@@ -15,11 +15,12 @@ pub fn draw_keys<'a>(content: &'a [(&'a str, &'a str)], color: Color) -> Paragra
         .collect();
 
     Paragraph::new(Text::styled(text, Style::default().fg(color)))
-        .alignment(Alignment::Center)
+        .alignment(Alignment::Left)
         .block(
             Block::default()
                 .title("Keys")
                 .style(Style::default().fg(color))
                 .borders(Borders::ALL),
         )
+        .wrap(Wrap { trim: true })
 }
