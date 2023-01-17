@@ -4,6 +4,6 @@ pre-commit:
     test:
       run: cargo test
     check:
-      run: cargo check
+      run: cargo clippy
     build:
       run: cargo build
