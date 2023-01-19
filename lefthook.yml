@@ -3,7 +3,7 @@ pre-commit:
   commands:
     test:
       run: cargo test
+    lint:
+      run: cargo clippy
     check:
       run: cargo check
-    build:
-      run: cargo build
