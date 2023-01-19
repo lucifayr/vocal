@@ -25,7 +25,7 @@ make install
 - [highlight_color](#highlight_color)
 - [audio_directory](#audio_directory)
 - [starting_volume](#starting_volume)
-= [starting_speed](#starting_speed)
+- [starting_speed](#starting_speed)
 
 ### color 
 
