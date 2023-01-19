@@ -188,6 +188,8 @@ impl AudioInstance {
                 keybindings.pull_input(sink, runtime_options, &mut self.audio_options);
                 if !self.audio_options.is_paused {
                     break;
+                } else {
+                    self.audio_options.time_since_last_tick = Instant::now();
                 }
             }
             thread::sleep(Duration::from_millis(interval.into()));
