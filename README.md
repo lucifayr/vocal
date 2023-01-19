@@ -16,7 +16,8 @@ make install
 #### Issues
 | error | fixes |
 |:-----:|:-----:|
-|`Package alsa was not found in pkg-config search path` | try installing the `alsa-lib-devel` package. |
+|`Package alsa was not found in pkg-config search path` | try installing the `alsa-lib-devel` package on Fedora 
+or these packages `alsa-base libasound2 libasound2-dev libudev-dev` on Ubuntu. |
 
 ## Configuration
 
