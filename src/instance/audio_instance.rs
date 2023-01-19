@@ -149,7 +149,7 @@ impl AudioInstance {
                         runtime_options.speed,
                         self.audio_options.duration.as_secs_f64(),
                         self.audio_options.passed_time,
-                        config.get_color(),
+                        config.get_highlight_color(),
                     ),
                     chunks[1],
                 );

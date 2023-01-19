@@ -5,7 +5,11 @@ use tui::{
 
 pub fn draw_chart<'a>(data: &'a [(&'a str, u64)], max: u64, color: Color) -> BarChart<'a> {
     BarChart::default()
-        .block(Block::default().borders(Borders::BOTTOM))
+        .block(
+            Block::default()
+                .style(Style::default().fg(color))
+                .borders(Borders::BOTTOM),
+        )
         .bar_width(3)
         .bar_style(Style::default().fg(color).bg(Color::Reset))
         .bar_gap(1)
