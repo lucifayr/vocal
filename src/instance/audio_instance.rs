@@ -45,6 +45,23 @@ impl AudioInstance {
         })
     }
 
+    pub fn play_queue<B: Backend>(
+        content: Vec<String>,
+        sink: &mut Sink,
+        runtime_options: &mut RuntimeOptions,
+        config: &Config,
+        terminal: &mut Terminal<B>,
+    ) {
+        match terminal.clear() {
+            Ok(_) => {}
+            Err(_) => println!("Failed to clear terminal"),
+        }
+
+        for audio in content {
+            AudioInstance::start_instance(audio, sink, runtime_options, config, terminal)
+        }
+    }
+
     pub fn start_instance<B: Backend>(
         path: String,
         sink: &mut Sink,
@@ -73,11 +90,6 @@ impl AudioInstance {
         config: &Config,
         terminal: &mut Terminal<B>,
     ) -> Result<(), &str> {
-        match terminal.clear() {
-            Ok(_) => {}
-            Err(_) => return Err("Failed to clear terminal"),
-        }
-
         let terminal_size = match terminal.size() {
             Ok(size) => size,
             Err(_) => return Err("Failed to get terminal size"),

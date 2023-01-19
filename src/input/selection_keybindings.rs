@@ -73,7 +73,13 @@ impl SelectionKeybindings {
                         exit(0);
                     }
                     KeyCode::Char('p') => {
-                        play_queue(instance, sink, runtime_options, config, terminal)
+                        AudioInstance::play_queue(
+                            instance.queue.clone(),
+                            sink,
+                            runtime_options,
+                            config,
+                            terminal,
+                        );
                     }
                     KeyCode::Up | KeyCode::Char('k') => move_up(instance),
                     KeyCode::Down | KeyCode::Char('j') => move_down(instance),
@@ -147,16 +153,4 @@ fn add_to_start_of_queue(instance: &mut SelectionInstance) {
             }
         };
     }
-}
-
-fn play_queue<B: Backend>(
-    instance: &mut SelectionInstance,
-    sink: &mut Sink,
-    runtime_options: &mut RuntimeOptions,
-    config: &Config,
-    terminal: &mut Terminal<B>,
-) {
-    instance.queue.iter().for_each(|path| {
-        AudioInstance::start_instance(path.to_owned(), sink, runtime_options, config, terminal)
-    })
 }

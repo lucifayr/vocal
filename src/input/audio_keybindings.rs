@@ -29,8 +29,8 @@ impl std::default::Default for AudioKeybindings {
             mute: Key::new("m", "mute"),
             volume_up: Key::new("k", "volume up"),
             volume_down: Key::new("j", "volume down"),
-            speed_up: Key::new("l", "speed up"),
-            speed_down: Key::new("h", "speed down"),
+            speed_up: Key::new("L", "speed up"),
+            speed_down: Key::new("H", "speed down"),
             reset_speed: Key::new("r", "reset speed"),
         }
     }
@@ -63,63 +63,77 @@ impl AudioKeybindings {
                         disable_raw_mode().unwrap();
                         exit(0);
                     }
-                    KeyCode::Char(' ') => {
-                        audio_options.is_paused = !audio_options.is_paused;
-                        if audio_options.is_paused {
-                            sink.pause();
-                        } else {
-                            sink.play();
-                        }
-                    }
-                    KeyCode::Up | KeyCode::Char('k') => {
-                        if runtime_options.volume < 100 {
-                            runtime_options.volume += 5;
-                            runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
-                            if !runtime_options.is_muted {
-                                sink.set_volume(runtime_options.volume_decimal);
-                            }
-                        }
-                    }
-                    KeyCode::Down | KeyCode::Char('j') => {
-                        if runtime_options.volume > 0 {
-                            runtime_options.volume -= 5;
-                            runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
-                            if !runtime_options.is_muted {
-                                sink.set_volume(runtime_options.volume_decimal);
-                            }
-                        }
-                    }
-                    KeyCode::Right | KeyCode::Char('l') => {
-                        if runtime_options.speed < 200 {
-                            runtime_options.speed += 5;
-                            runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
-                            sink.set_speed(runtime_options.speed_decimal);
-                        }
-                    }
-                    KeyCode::Left | KeyCode::Char('h') => {
-                        if runtime_options.speed > 50 {
-                            runtime_options.speed -= 5;
-                            runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
-                            sink.set_speed(runtime_options.speed_decimal);
-                        }
-                    }
-                    KeyCode::Char('r') => {
-                        runtime_options.speed = 100;
-                        runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
-                        sink.set_speed(runtime_options.speed_decimal);
-                    }
-                    KeyCode::Char('m') => {
-                        if !runtime_options.is_muted {
-                            sink.set_volume(0.0);
-                            runtime_options.is_muted = true;
-                        } else {
-                            sink.set_volume(runtime_options.volume_decimal);
-                            runtime_options.is_muted = false;
-                        }
-                    }
+                    KeyCode::Char(' ') => pause(sink, audio_options),
+                    KeyCode::Char('m') => mute(sink, runtime_options),
+                    KeyCode::Char('r') => reset_speed(sink, runtime_options),
+                    KeyCode::Up | KeyCode::Char('k') => volume_up(sink, runtime_options),
+                    KeyCode::Down | KeyCode::Char('j') => volume_down(sink, runtime_options),
+                    KeyCode::Char('L') => speed_up(sink, runtime_options),
+                    KeyCode::Char('H') => speed_down(sink, runtime_options),
                     _ => {}
                 }
             }
         }
+    }
+}
+
+fn pause(sink: &Sink, audio_options: &mut AudioOptions) {
+    audio_options.is_paused = !audio_options.is_paused;
+    if audio_options.is_paused {
+        sink.pause();
+    } else {
+        sink.play();
+    }
+}
+
+fn mute(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    if !runtime_options.is_muted {
+        sink.set_volume(0.0);
+        runtime_options.is_muted = true;
+    } else {
+        sink.set_volume(runtime_options.volume_decimal);
+        runtime_options.is_muted = false;
+    }
+}
+
+fn reset_speed(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    runtime_options.speed = 100;
+    runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
+    sink.set_speed(runtime_options.speed_decimal);
+}
+
+fn volume_up(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    if runtime_options.volume < 100 {
+        runtime_options.volume += 5;
+        runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
+        if !runtime_options.is_muted {
+            sink.set_volume(runtime_options.volume_decimal);
+        }
+    }
+}
+
+fn volume_down(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    if runtime_options.volume > 0 {
+        runtime_options.volume -= 5;
+        runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
+        if !runtime_options.is_muted {
+            sink.set_volume(runtime_options.volume_decimal);
+        }
+    }
+}
+
+fn speed_up(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    if runtime_options.speed < 200 {
+        runtime_options.speed += 5;
+        runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
+        sink.set_speed(runtime_options.speed_decimal);
+    }
+}
+
+fn speed_down(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    if runtime_options.speed > 50 {
+        runtime_options.speed -= 5;
+        runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
+        sink.set_speed(runtime_options.speed_decimal);
     }
 }

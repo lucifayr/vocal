@@ -27,17 +27,13 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
     sink.set_volume(runtime_options.volume_decimal);
 
     match args.play {
-        Some(paths) => {
-            for path in paths {
-                AudioInstance::start_instance(
-                    path,
-                    &mut sink,
-                    &mut runtime_options,
-                    &config,
-                    &mut terminal,
-                )
-            }
-        }
+        Some(paths) => AudioInstance::play_queue(
+            paths,
+            &mut sink,
+            &mut runtime_options,
+            &config,
+            &mut terminal,
+        ),
         None => {
             let paths = match args.load {
                 Some(audio) => audio,
