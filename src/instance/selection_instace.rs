@@ -105,6 +105,7 @@ impl SelectionInstance {
                         draw_keys(
                             SelectionKeybindings::default().get_keybindings().as_slice(),
                             config.get_color(),
+                            config.get_highlight_color(),
                         ),
                         chunks_vertical[1],
                     );

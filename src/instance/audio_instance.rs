@@ -159,6 +159,7 @@ impl AudioInstance {
                     draw_keys(
                         AudioKeybindings::default().get_keybindings().as_slice(),
                         config.get_color(),
+                        config.get_highlight_color(),
                     ),
                     chunks[3],
                 );

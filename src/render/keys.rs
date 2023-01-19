@@ -5,7 +5,11 @@ use tui::{
     widgets::{Block, Borders, Paragraph, Wrap},
 };
 
-pub fn draw_keys<'a>(content: &'a [(&'a str, &'a str)], color: Color) -> Paragraph {
+pub fn draw_keys<'a>(
+    content: &'a [(&'a str, &'a str)],
+    color: Color,
+    highlight_color: Color,
+) -> Paragraph {
     let text: String = content
         .iter()
         .map(|item| {
@@ -14,7 +18,7 @@ pub fn draw_keys<'a>(content: &'a [(&'a str, &'a str)], color: Color) -> Paragra
         })
         .collect();
 
-    Paragraph::new(Text::styled(text, Style::default().fg(color)))
+    Paragraph::new(Text::styled(text, Style::default().fg(highlight_color)))
         .alignment(Alignment::Left)
         .block(
             Block::default()
