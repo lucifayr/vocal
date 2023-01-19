@@ -13,14 +13,14 @@ use tui::{
 
 use crate::{
     audio::source_data::SourceData,
+    input::{audio_keybindings::AudioKeybindings, config::Config},
     properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
         info::draw_info,
-        keys::draw_keys,
+        keybindings::draw_keys,
     },
-    user_input::{config::Config, input::pull_input_while_playing, keybindings::AudioKeybindings},
 };
 
 pub struct AudioInstance {
@@ -82,6 +82,8 @@ impl AudioInstance {
             Ok(size) => size,
             Err(_) => return Err("Failed to get terminal size"),
         };
+
+        let keybindings = AudioKeybindings::default();
 
         let interval = 16;
         let sample_rate = source.sample_rate();
@@ -157,7 +159,7 @@ impl AudioInstance {
 
                 rect.render_widget(
                     draw_keys(
-                        AudioKeybindings::default().get_keybindings().as_slice(),
+                        keybindings.get_keybindings(),
                         config.get_color(),
                         config.get_highlight_color(),
                     ),
@@ -171,7 +173,7 @@ impl AudioInstance {
             }
 
             loop {
-                pull_input_while_playing(sink, runtime_options, &mut self.audio_options);
+                keybindings.pull_input(sink, runtime_options, &mut self.audio_options);
                 if !self.audio_options.is_paused {
                     break;
                 }

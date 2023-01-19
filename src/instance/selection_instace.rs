@@ -9,14 +9,12 @@ use tui::{
 };
 
 use crate::{
+    input::{config::Config, selection_keybindings::SelectionKeybindings},
     properties::runtime_properties::RuntimeOptions,
     render::{
         info::{draw_info_no_audio, get_filename_from_path},
-        keys::draw_keys,
+        keybindings::draw_keys,
         list::draw_list,
-    },
-    user_input::{
-        config::Config, input::pull_input_while_listing, keybindings::SelectionKeybindings,
     },
 };
 
@@ -49,6 +47,8 @@ impl SelectionInstance {
             Ok(_) => {}
             Err(_) => return Err("Failed to clear terminal"),
         }
+
+        let keybindings = SelectionKeybindings::default();
 
         let content = self.content.clone();
         let items: Vec<ListItem> = content
@@ -103,7 +103,7 @@ impl SelectionInstance {
                     );
                     rect.render_widget(
                         draw_keys(
-                            SelectionKeybindings::default().get_keybindings().as_slice(),
+                            keybindings.get_keybindings(),
                             config.get_color(),
                             config.get_highlight_color(),
                         ),
@@ -117,7 +117,7 @@ impl SelectionInstance {
                 }
             }
 
-            pull_input_while_listing(self, sink, runtime_options, config, terminal);
+            keybindings.pull_input(self, sink, runtime_options, config, terminal);
             thread::sleep(Duration::from_millis(interval));
         }
     }
