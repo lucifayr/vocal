@@ -1,4 +1,7 @@
-use std::io;
+use std::{
+    cmp::{max, min},
+    io,
+};
 
 use tui::{backend::CrosstermBackend, Terminal};
 
@@ -22,7 +25,9 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
         Err(_) => return Err("Failed to create a TUI terminal"),
     };
 
-    let mut runtime_options = RuntimeOptions::new(50, 100);
+    let volume = max(min(config.starting_volume, 100), 0);
+    let speed = max(min(config.starting_speed, 200), 10);
+    let mut runtime_options = RuntimeOptions::new(volume, speed);
     sink.set_speed(runtime_options.speed_decimal);
     sink.set_volume(runtime_options.volume_decimal);
 

@@ -93,3 +93,43 @@ All files in this directory are listed and can be selected to be played.
 ```toml
 audio_directory = '$HOME/vocal'
 ```
+
+### starting_volume
+
+##### Description
+The volume level that audio will play at after the application is first started.
+
+##### Default Value
+```toml
+starting_volume = 50
+```
+
+##### Max
+```toml
+starting_volume = 100
+```
+
+##### Min
+```toml
+starting_volume = 0
+```
+
+### starting_speed
+
+##### Description
+The speed that audio will play at after the application is first started.
+
+##### Default Value
+```toml
+starting_speed = 100
+```
+
+##### Max
+```toml
+starting_speed = 200
+```
+
+##### Min
+```toml
+starting_speed = 10
+```

@@ -59,7 +59,7 @@ impl AudioKeybindings {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
                 match key_event.code {
-                    KeyCode::Char('q') => {
+                    KeyCode::Char('Q') => {
                         disable_raw_mode().unwrap();
                         exit(0);
                     }
@@ -103,8 +103,11 @@ fn reset_speed(sink: &Sink, runtime_options: &mut RuntimeOptions) {
 }
 
 fn volume_up(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    runtime_options.volume /= 10;
+    runtime_options.volume *= 10;
+
     if runtime_options.volume < 100 {
-        runtime_options.volume += 5;
+        runtime_options.volume += 10;
         runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
         if !runtime_options.is_muted {
             sink.set_volume(runtime_options.volume_decimal);
@@ -113,8 +116,11 @@ fn volume_up(sink: &Sink, runtime_options: &mut RuntimeOptions) {
 }
 
 fn volume_down(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    runtime_options.volume /= 10;
+    runtime_options.volume *= 10;
+
     if runtime_options.volume > 0 {
-        runtime_options.volume -= 5;
+        runtime_options.volume -= 10;
         runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
         if !runtime_options.is_muted {
             sink.set_volume(runtime_options.volume_decimal);
@@ -123,16 +129,22 @@ fn volume_down(sink: &Sink, runtime_options: &mut RuntimeOptions) {
 }
 
 fn speed_up(sink: &Sink, runtime_options: &mut RuntimeOptions) {
+    runtime_options.speed /= 10;
+    runtime_options.speed *= 10;
+
     if runtime_options.speed < 200 {
-        runtime_options.speed += 5;
+        runtime_options.speed += 10;
         runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
         sink.set_speed(runtime_options.speed_decimal);
     }
 }
 
 fn speed_down(sink: &Sink, runtime_options: &mut RuntimeOptions) {
-    if runtime_options.speed > 50 {
-        runtime_options.speed -= 5;
+    runtime_options.speed /= 10;
+    runtime_options.speed *= 10;
+
+    if runtime_options.speed > 10 {
+        runtime_options.speed -= 10;
         runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
         sink.set_speed(runtime_options.speed_decimal);
     }
