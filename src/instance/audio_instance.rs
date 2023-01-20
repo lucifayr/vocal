@@ -9,7 +9,7 @@ use tui::{
 use crate::{
     audio::source_data::SourceData,
     events::{audio_events::AudioEvent, handler::EventHandler},
-    input::{audio_keybindings::AudioKeybindings},
+    input::audio_keybindings::AudioKeybindings,
     properties::audio_properties::AudioOptions,
     render::{
         bar::draw_bar,
@@ -72,10 +72,10 @@ impl AudioInstance {
         };
     }
 
-    pub fn play_audio<'a, B: Backend>(
+    pub fn play_audio<B: Backend>(
         source: Decoder<File>,
-        handler: &'a mut EventHandler<B>,
-    ) -> Result<(), &'a str> {
+        handler: &mut EventHandler<B>,
+    ) -> Result<(), &str> {
         handler.trigger(AudioEvent::StartAudio);
         let terminal_size = match handler.terminal.size() {
             Ok(size) => size,
