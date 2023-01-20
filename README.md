@@ -1,7 +1,7 @@
 # Vocal
 
 ## Description
-Vocal is a terminal app to play music and to look cool while doing it.
+Vocal is a terminal program to play audio and to look cool while doing it.
 
 ## Installation
 
@@ -24,6 +24,8 @@ make install
 - [color](#color)
 - [highlight_color](#highlight_color)
 - [audio_directory](#audio_directory)
+- [starting_volume](#starting_volume)
+- [starting_speed](#starting_speed)
 
 ### color 
 
