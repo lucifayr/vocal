@@ -6,6 +6,7 @@ use input::config::Config;
 use run::run;
 
 mod audio;
+mod events;
 mod input;
 mod instance;
 mod properties;

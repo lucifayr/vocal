@@ -4,12 +4,11 @@ use crossterm::{
     event::{poll, read, Event, KeyCode},
     terminal::disable_raw_mode,
 };
-use rodio::Sink;
 use tui::{backend::Backend, Terminal};
 
 use crate::{
+    events::handler::EventHandler,
     instance::{audio_instance::AudioInstance, selection_instace::SelectionInstance},
-    properties::runtime_properties::RuntimeOptions,
 };
 
 use super::{config::Config, key::Key};
@@ -60,10 +59,9 @@ impl SelectionKeybindings {
     pub fn pull_input<B: Backend>(
         &self,
         instance: &mut SelectionInstance,
-        sink: &mut Sink,
-        runtime_options: &mut RuntimeOptions,
         config: &Config,
         terminal: &mut Terminal<B>,
+        handler: &mut EventHandler,
     ) {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
@@ -75,10 +73,9 @@ impl SelectionKeybindings {
                     KeyCode::Char('p') => {
                         AudioInstance::play_queue(
                             instance.queue.clone(),
-                            sink,
-                            runtime_options,
                             config,
                             terminal,
+                            handler,
                         );
                     }
                     KeyCode::Up | KeyCode::Char('k') => move_up(instance),

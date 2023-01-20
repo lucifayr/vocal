@@ -4,9 +4,8 @@ use crossterm::{
     event::{poll, read, Event, KeyCode},
     terminal::disable_raw_mode,
 };
-use rodio::Sink;
 
-use crate::properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions};
+use crate::events::{audio_events::AudioEvent, handler::EventHandler};
 
 use super::key::Key;
 
@@ -50,12 +49,7 @@ impl AudioKeybindings {
         ]
     }
 
-    pub fn pull_input(
-        &self,
-        sink: &Sink,
-        runtime_options: &mut RuntimeOptions,
-        audio_options: &mut AudioOptions,
-    ) {
+    pub fn pull_input(&self, handler: &mut EventHandler) {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
                 match key_event.code {
@@ -63,89 +57,16 @@ impl AudioKeybindings {
                         disable_raw_mode().unwrap();
                         exit(0);
                     }
-                    KeyCode::Char(' ') => pause(sink, audio_options),
-                    KeyCode::Char('m') => mute(sink, runtime_options),
-                    KeyCode::Char('r') => reset_speed(sink, runtime_options),
-                    KeyCode::Up | KeyCode::Char('k') => volume_up(sink, runtime_options),
-                    KeyCode::Down | KeyCode::Char('j') => volume_down(sink, runtime_options),
-                    KeyCode::Char('L') => speed_up(sink, runtime_options),
-                    KeyCode::Char('H') => speed_down(sink, runtime_options),
+                    KeyCode::Char(' ') => handler.trigger(AudioEvent::PauseAudio),
+                    KeyCode::Char('m') => handler.trigger(AudioEvent::MuteAudio),
+                    KeyCode::Char('r') => handler.trigger(AudioEvent::ResetSpeed),
+                    KeyCode::Up | KeyCode::Char('k') => handler.trigger(AudioEvent::VolumeUp),
+                    KeyCode::Down | KeyCode::Char('j') => handler.trigger(AudioEvent::VolumeDown),
+                    KeyCode::Char('L') => handler.trigger(AudioEvent::SpeedUp),
+                    KeyCode::Char('H') => handler.trigger(AudioEvent::SpeedDown),
                     _ => {}
                 }
             }
         }
-    }
-}
-
-fn pause(sink: &Sink, audio_options: &mut AudioOptions) {
-    audio_options.is_paused = !audio_options.is_paused;
-    if audio_options.is_paused {
-        sink.pause();
-    } else {
-        sink.play();
-    }
-}
-
-fn mute(sink: &Sink, runtime_options: &mut RuntimeOptions) {
-    if !runtime_options.is_muted {
-        sink.set_volume(0.0);
-        runtime_options.is_muted = true;
-    } else {
-        sink.set_volume(runtime_options.volume_decimal);
-        runtime_options.is_muted = false;
-    }
-}
-
-fn reset_speed(sink: &Sink, runtime_options: &mut RuntimeOptions) {
-    runtime_options.speed = 100;
-    runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
-    sink.set_speed(runtime_options.speed_decimal);
-}
-
-fn volume_up(sink: &Sink, runtime_options: &mut RuntimeOptions) {
-    runtime_options.volume /= 10;
-    runtime_options.volume *= 10;
-
-    if runtime_options.volume < 100 {
-        runtime_options.volume += 10;
-        runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
-        if !runtime_options.is_muted {
-            sink.set_volume(runtime_options.volume_decimal);
-        }
-    }
-}
-
-fn volume_down(sink: &Sink, runtime_options: &mut RuntimeOptions) {
-    runtime_options.volume /= 10;
-    runtime_options.volume *= 10;
-
-    if runtime_options.volume > 0 {
-        runtime_options.volume -= 10;
-        runtime_options.volume_decimal = runtime_options.volume as f32 / 100.0;
-        if !runtime_options.is_muted {
-            sink.set_volume(runtime_options.volume_decimal);
-        }
-    }
-}
-
-fn speed_up(sink: &Sink, runtime_options: &mut RuntimeOptions) {
-    runtime_options.speed /= 10;
-    runtime_options.speed *= 10;
-
-    if runtime_options.speed < 200 {
-        runtime_options.speed += 10;
-        runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
-        sink.set_speed(runtime_options.speed_decimal);
-    }
-}
-
-fn speed_down(sink: &Sink, runtime_options: &mut RuntimeOptions) {
-    runtime_options.speed /= 10;
-    runtime_options.speed *= 10;
-
-    if runtime_options.speed > 10 {
-        runtime_options.speed -= 10;
-        runtime_options.speed_decimal = runtime_options.speed as f32 / 100.0;
-        sink.set_speed(runtime_options.speed_decimal);
     }
 }

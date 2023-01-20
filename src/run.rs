@@ -4,13 +4,14 @@ use tui::{backend::CrosstermBackend, Terminal};
 
 use crate::{
     audio::init::init_audio_handler,
+    events::handler::EventHandler,
     input::{args::Args, config::Config},
     instance::{audio_instance::AudioInstance, selection_instace::SelectionInstance},
     properties::runtime_properties::RuntimeOptions,
 };
 
 pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
-    let (mut sink, _stream) = match init_audio_handler() {
+    let (sink, _stream) = match init_audio_handler() {
         Some(handler_data) => handler_data,
         None => return Err("Failed to create audio sink"),
     };
@@ -24,18 +25,15 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
 
     let volume = config.starting_volume.clamp(0, 100);
     let speed = config.starting_speed.clamp(10, 200);
-    let mut runtime_options = RuntimeOptions::new(volume, speed);
+    let runtime_options = RuntimeOptions::new(volume, speed);
+
     sink.set_speed(runtime_options.speed_decimal);
     sink.set_volume(runtime_options.volume_decimal);
 
+    let mut handler = EventHandler::new(&sink, runtime_options);
+
     match args.play {
-        Some(paths) => AudioInstance::play_queue(
-            paths,
-            &mut sink,
-            &mut runtime_options,
-            &config,
-            &mut terminal,
-        ),
+        Some(paths) => AudioInstance::play_queue(paths, &config, &mut terminal, &mut handler),
         None => {
             let paths = match args.load {
                 Some(audio) => audio,
@@ -49,12 +47,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
 
             let mut selection_instance = SelectionInstance::new(paths);
 
-            match selection_instance.show_selection(
-                &mut sink,
-                &mut runtime_options,
-                &config,
-                &mut terminal,
-            ) {
+            match selection_instance.show_selection(&config, &mut terminal, &mut handler) {
                 Ok(_) => {}
                 Err(err) => return Err(err),
             }

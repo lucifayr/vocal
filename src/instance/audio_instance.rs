@@ -4,7 +4,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rodio::{Decoder, Sink, Source};
+use rodio::{Decoder, Source};
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout},
@@ -13,8 +13,9 @@ use tui::{
 
 use crate::{
     audio::source_data::SourceData,
+    events::{audio_events::AudioEvent, handler::EventHandler},
     input::{audio_keybindings::AudioKeybindings, config::Config},
-    properties::{audio_properties::AudioOptions, runtime_properties::RuntimeOptions},
+    properties::audio_properties::AudioOptions,
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
@@ -47,27 +48,29 @@ impl AudioInstance {
 
     pub fn play_queue<B: Backend>(
         content: Vec<String>,
-        sink: &mut Sink,
-        runtime_options: &mut RuntimeOptions,
         config: &Config,
         terminal: &mut Terminal<B>,
+        handler: &mut EventHandler,
     ) {
+        handler.trigger(AudioEvent::StartQueue);
+
         match terminal.clear() {
             Ok(_) => {}
             Err(_) => println!("Failed to clear terminal"),
         }
 
         for audio in content {
-            AudioInstance::start_instance(audio, sink, runtime_options, config, terminal)
+            AudioInstance::start_instance(audio, config, terminal, handler)
         }
+
+        handler.trigger(AudioEvent::EndQueue);
     }
 
     pub fn start_instance<B: Backend>(
         path: String,
-        sink: &mut Sink,
-        runtime_options: &mut RuntimeOptions,
         config: &Config,
         terminal: &mut Terminal<B>,
+        handler: &mut EventHandler,
     ) {
         if let Some(mut instance) = AudioInstance::new(path.as_str()) {
             let source = match SourceData::get_source(path.as_str()) {
@@ -75,7 +78,7 @@ impl AudioInstance {
                 None => return,
             };
 
-            match instance.play_audio(sink, source, runtime_options, config, terminal) {
+            match instance.play_audio(source, config, terminal, handler) {
                 Ok(_) => {}
                 Err(err) => println!("{err}"),
             };
@@ -84,12 +87,13 @@ impl AudioInstance {
 
     pub fn play_audio<B: Backend>(
         &mut self,
-        sink: &mut Sink,
         source: Decoder<File>,
-        runtime_options: &mut RuntimeOptions,
         config: &Config,
         terminal: &mut Terminal<B>,
+        handler: &mut EventHandler,
     ) -> Result<(), &str> {
+        handler.trigger(AudioEvent::StartAudio);
+
         let terminal_size = match terminal.size() {
             Ok(size) => size,
             Err(_) => return Err("Failed to get terminal size"),
@@ -101,7 +105,7 @@ impl AudioInstance {
         let sample_rate = source.sample_rate();
         let step = (sample_rate * interval) as f32 / 1000.0;
 
-        sink.append(source);
+        handler.sink.append(source);
 
         loop {
             self.audio_options.passed_time += self
@@ -109,13 +113,14 @@ impl AudioInstance {
                 .time_since_last_tick
                 .elapsed()
                 .as_secs_f64()
-                * runtime_options.speed_decimal as f64;
+                * handler.runtime_options.speed_decimal as f64;
 
             self.audio_options.time_since_last_tick = Instant::now();
 
             let progress =
                 self.audio_options.passed_time / self.audio_options.duration.as_secs_f64();
             if progress > 1.0 {
+                handler.trigger(AudioEvent::EndAudio);
                 return Ok(());
             }
 
@@ -158,9 +163,9 @@ impl AudioInstance {
                 rect.render_widget(
                     draw_info(
                         self.path.as_str(),
-                        runtime_options.volume,
-                        runtime_options.is_muted,
-                        runtime_options.speed,
+                        handler.runtime_options.volume,
+                        handler.runtime_options.is_muted,
+                        handler.runtime_options.speed,
                         self.audio_options.duration.as_secs_f64(),
                         self.audio_options.passed_time,
                         config.get_highlight_color(),
@@ -185,7 +190,7 @@ impl AudioInstance {
             }
 
             loop {
-                keybindings.pull_input(sink, runtime_options, &mut self.audio_options);
+                keybindings.pull_input(handler);
                 if !self.audio_options.is_paused {
                     break;
                 } else {

@@ -1,6 +1,5 @@
 use std::{thread, time::Duration};
 
-use rodio::Sink;
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout},
@@ -9,8 +8,8 @@ use tui::{
 };
 
 use crate::{
+    events::handler::EventHandler,
     input::{config::Config, selection_keybindings::SelectionKeybindings},
-    properties::runtime_properties::RuntimeOptions,
     render::{
         info::{draw_info_no_audio, get_filename_from_path},
         keybindings::draw_keys,
@@ -38,10 +37,9 @@ impl SelectionInstance {
 
     pub fn show_selection<B: Backend>(
         &mut self,
-        sink: &mut Sink,
-        runtime_options: &mut RuntimeOptions,
         config: &Config,
         terminal: &mut Terminal<B>,
+        handler: &mut EventHandler,
     ) -> Result<(), &'static str> {
         match terminal.clear() {
             Ok(_) => {}
@@ -117,7 +115,7 @@ impl SelectionInstance {
                 }
             }
 
-            keybindings.pull_input(self, sink, runtime_options, config, terminal);
+            keybindings.pull_input(self, config, terminal, handler);
             thread::sleep(Duration::from_millis(interval));
         }
     }
