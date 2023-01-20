@@ -1,8 +1,4 @@
-use std::{
-    fs::File,
-    thread,
-    time::{Duration, Instant},
-};
+use std::{fs::File, thread, time::Duration};
 
 use rodio::{Decoder, Source};
 use tui::{
@@ -93,6 +89,7 @@ impl AudioInstance {
         handler: &mut EventHandler,
     ) -> Result<(), &str> {
         handler.trigger(AudioEvent::StartAudio);
+        handler.audio_options = Some(self.audio_options);
 
         let terminal_size = match terminal.size() {
             Ok(size) => size,
@@ -106,19 +103,15 @@ impl AudioInstance {
         let step = (sample_rate * interval) as f32 / 1000.0;
 
         handler.sink.append(source);
-
         loop {
-            self.audio_options.passed_time += self
+            handler.trigger(AudioEvent::Tick);
+
+            let progress = handler
                 .audio_options
-                .time_since_last_tick
-                .elapsed()
-                .as_secs_f64()
-                * handler.runtime_options.speed_decimal as f64;
+                .as_ref()
+                .expect("Audio options should exist")
+                .progress;
 
-            self.audio_options.time_since_last_tick = Instant::now();
-
-            let progress =
-                self.audio_options.passed_time / self.audio_options.duration.as_secs_f64();
             if progress > 1.0 {
                 handler.trigger(AudioEvent::EndAudio);
                 return Ok(());
@@ -166,8 +159,15 @@ impl AudioInstance {
                         handler.runtime_options.volume,
                         handler.runtime_options.is_muted,
                         handler.runtime_options.speed,
-                        self.audio_options.duration.as_secs_f64(),
-                        self.audio_options.passed_time,
+                        handler
+                            .audio_options
+                            .expect("Audio options should exist")
+                            .duration
+                            .as_secs_f64(),
+                        handler
+                            .audio_options
+                            .expect("Audio options should exist")
+                            .passed_time,
                         config.get_highlight_color(),
                     ),
                     chunks[1],
@@ -191,10 +191,14 @@ impl AudioInstance {
 
             loop {
                 keybindings.pull_input(handler);
-                if !self.audio_options.is_paused {
+                if !handler
+                    .audio_options
+                    .expect("Audio options should exist")
+                    .is_paused
+                {
                     break;
                 } else {
-                    self.audio_options.time_since_last_tick = Instant::now();
+                    handler.trigger(AudioEvent::ResetTick);
                 }
             }
             thread::sleep(Duration::from_millis(interval.into()));

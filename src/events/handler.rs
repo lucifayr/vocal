@@ -8,7 +8,7 @@ pub trait Event {
 
 pub struct EventHandler<'a> {
     pub sink: &'a Sink,
-    pub audio_options: Option<&'a mut AudioOptions>,
+    pub audio_options: Option<AudioOptions>,
     pub runtime_options: RuntimeOptions,
 }
 

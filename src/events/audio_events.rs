@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use super::handler::{Event, EventHandler};
 
 pub enum AudioEvent {
@@ -12,6 +14,8 @@ pub enum AudioEvent {
     VolumeDown,
     SpeedUp,
     SpeedDown,
+    Tick,
+    ResetTick,
 }
 
 trait AudioActions {
@@ -22,10 +26,12 @@ trait AudioActions {
     fn volume_down(&mut self);
     fn speed_up(&mut self);
     fn speed_down(&mut self);
+    fn tick(&mut self);
+    fn reset_tick(&mut self);
 }
 impl AudioActions for EventHandler<'_> {
     fn pause(&mut self) {
-        if let Some(audio_options) = &mut self.audio_options {
+        if let Some(audio_options) = self.audio_options.as_mut() {
             audio_options.is_paused = !audio_options.is_paused;
             if audio_options.is_paused {
                 self.sink.pause();
@@ -98,6 +104,23 @@ impl AudioActions for EventHandler<'_> {
             self.sink.set_speed(self.runtime_options.speed_decimal);
         }
     }
+
+    fn tick(&mut self) {
+        if let Some(audio_options) = self.audio_options.as_mut() {
+            audio_options.passed_time += audio_options.time_since_last_tick.elapsed().as_secs_f64()
+                * self.runtime_options.speed_decimal as f64;
+            audio_options.time_since_last_tick = Instant::now();
+
+            audio_options.progress =
+                audio_options.passed_time / audio_options.duration.as_secs_f64();
+        }
+    }
+
+    fn reset_tick(&mut self) {
+        if let Some(audio_options) = self.audio_options.as_mut() {
+            audio_options.time_since_last_tick = Instant::now();
+        }
+    }
 }
 
 impl Event for AudioEvent {
@@ -114,6 +137,8 @@ impl Event for AudioEvent {
             AudioEvent::VolumeDown => handler.volume_down(),
             AudioEvent::SpeedUp => handler.speed_up(),
             AudioEvent::SpeedDown => handler.speed_down(),
+            AudioEvent::Tick => handler.tick(),
+            AudioEvent::ResetTick => handler.reset_tick(),
         }
     }
 }
