@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crossterm::event::{poll, read, Event, KeyCode};
-use tui::{backend::Backend, Terminal};
+use tui::{backend::Backend};
 
 use crate::{
     events::{
@@ -10,7 +10,7 @@ use crate::{
     instance::audio_instance::AudioInstance,
 };
 
-use super::{config::Config, key::Key};
+use super::{key::Key};
 
 pub struct SelectionKeybindings {
     pub quit: Key,

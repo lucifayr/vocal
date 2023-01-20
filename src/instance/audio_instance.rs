@@ -4,13 +4,12 @@ use rodio::{Decoder, Source};
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout},
-    Terminal,
 };
 
 use crate::{
     audio::source_data::SourceData,
     events::{audio_events::AudioEvent, handler::EventHandler},
-    input::{audio_keybindings::AudioKeybindings, config::Config},
+    input::{audio_keybindings::AudioKeybindings},
     properties::audio_properties::AudioOptions,
     render::{
         bar::draw_bar,
@@ -177,7 +176,13 @@ impl AudioInstance {
 
             loop {
                 keybindings.pull_input(handler);
-                if !instance.audio_options.is_paused {
+                if !handler
+                    .audio_instance
+                    .as_ref()
+                    .expect("Audio instance should exist")
+                    .audio_options
+                    .is_paused
+                {
                     break;
                 } else {
                     handler.trigger(AudioEvent::ResetTick);
