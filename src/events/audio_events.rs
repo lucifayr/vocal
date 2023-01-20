@@ -29,11 +29,12 @@ trait AudioActions {
     fn tick(&mut self);
     fn reset_tick(&mut self);
 }
+
 impl AudioActions for EventHandler<'_> {
     fn pause(&mut self) {
-        if let Some(audio_options) = self.audio_options.as_mut() {
-            audio_options.is_paused = !audio_options.is_paused;
-            if audio_options.is_paused {
+        if let Some(instance) = self.audio_instance.as_mut() {
+            instance.audio_options.is_paused = !instance.audio_options.is_paused;
+            if instance.audio_options.is_paused {
                 self.sink.pause();
             } else {
                 self.sink.play();
@@ -106,19 +107,23 @@ impl AudioActions for EventHandler<'_> {
     }
 
     fn tick(&mut self) {
-        if let Some(audio_options) = self.audio_options.as_mut() {
-            audio_options.passed_time += audio_options.time_since_last_tick.elapsed().as_secs_f64()
+        if let Some(instance) = self.audio_instance.as_mut() {
+            instance.audio_options.passed_time += instance
+                .audio_options
+                .time_since_last_tick
+                .elapsed()
+                .as_secs_f64()
                 * self.runtime_options.speed_decimal as f64;
-            audio_options.time_since_last_tick = Instant::now();
+            instance.audio_options.time_since_last_tick = Instant::now();
 
-            audio_options.progress =
-                audio_options.passed_time / audio_options.duration.as_secs_f64();
+            instance.audio_options.progress =
+                instance.audio_options.passed_time / instance.audio_options.duration.as_secs_f64();
         }
     }
 
     fn reset_tick(&mut self) {
-        if let Some(audio_options) = self.audio_options.as_mut() {
-            audio_options.time_since_last_tick = Instant::now();
+        if let Some(instance) = self.audio_instance.as_mut() {
+            instance.audio_options.time_since_last_tick = Instant::now();
         }
     }
 }

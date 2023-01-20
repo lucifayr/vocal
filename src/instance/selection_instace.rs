@@ -36,7 +36,6 @@ impl SelectionInstance {
     }
 
     pub fn show_selection<B: Backend>(
-        &mut self,
         config: &Config,
         terminal: &mut Terminal<B>,
         handler: &mut EventHandler,
@@ -48,7 +47,13 @@ impl SelectionInstance {
 
         let keybindings = SelectionKeybindings::default();
 
-        let content = self.content.clone();
+        let content = handler
+            .selection_instance
+            .as_ref()
+            .expect("Selection instance should exist")
+            .content
+            .clone();
+
         let items: Vec<ListItem> = content
             .iter()
             .map(|path| ListItem::new(get_filename_from_path(path.as_str()).unwrap_or("???")))
@@ -57,7 +62,13 @@ impl SelectionInstance {
         let interval = 16_u64;
 
         loop {
-            let queue = self.queue.clone();
+            let queue = handler
+                .selection_instance
+                .as_ref()
+                .expect("Selection instance should exist")
+                .queue
+                .clone();
+
             let queue_items: Vec<ListItem> = queue
                 .iter()
                 .map(|path| ListItem::new(get_filename_from_path(path.as_str()).unwrap_or("???")))
@@ -88,7 +99,11 @@ impl SelectionInstance {
                             config.get_highlight_color(),
                         ),
                         chunks_horizontal[0],
-                        &mut self.state,
+                        &mut handler
+                            .selection_instance
+                            .as_mut()
+                            .expect("Selection instance should exist")
+                            .state,
                     );
                     rect.render_widget(
                         draw_list(
@@ -115,7 +130,7 @@ impl SelectionInstance {
                 }
             }
 
-            keybindings.pull_input(self, config, terminal, handler);
+            keybindings.pull_input(config, terminal, handler);
             thread::sleep(Duration::from_millis(interval));
         }
     }

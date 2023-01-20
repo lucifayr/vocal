@@ -1,6 +1,7 @@
 use rodio::{Decoder, Source};
 use std::{fs::File, time::Duration};
 
+#[derive(Debug, Clone)]
 pub struct SourceData {
     pub samples: Vec<f32>,
     pub duration: Duration,

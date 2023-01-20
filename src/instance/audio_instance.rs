@@ -20,8 +20,9 @@ use crate::{
     },
 };
 
+#[derive(Debug, Clone)]
 pub struct AudioInstance {
-    audio_options: AudioOptions,
+    pub audio_options: AudioOptions,
     source_data: SourceData,
     path: String,
 }
@@ -68,29 +69,27 @@ impl AudioInstance {
         terminal: &mut Terminal<B>,
         handler: &mut EventHandler,
     ) {
-        if let Some(mut instance) = AudioInstance::new(path.as_str()) {
+        if let Some(instance) = AudioInstance::new(path.as_str()) {
             let source = match SourceData::get_source(path.as_str()) {
                 Some(source) => source,
                 None => return,
             };
 
-            match instance.play_audio(source, config, terminal, handler) {
+            handler.audio_instance = Some(instance);
+            match AudioInstance::play_audio(source, config, terminal, handler) {
                 Ok(_) => {}
                 Err(err) => println!("{err}"),
             };
         };
     }
 
-    pub fn play_audio<B: Backend>(
-        &mut self,
+    pub fn play_audio<'a, B: Backend>(
         source: Decoder<File>,
-        config: &Config,
-        terminal: &mut Terminal<B>,
-        handler: &mut EventHandler,
-    ) -> Result<(), &str> {
+        config: &'a Config,
+        terminal: &'a mut Terminal<B>,
+        handler: &'a mut EventHandler,
+    ) -> Result<(), &'a str> {
         handler.trigger(AudioEvent::StartAudio);
-        handler.audio_options = Some(self.audio_options);
-
         let terminal_size = match terminal.size() {
             Ok(size) => size,
             Err(_) => return Err("Failed to get terminal size"),
@@ -106,18 +105,20 @@ impl AudioInstance {
         loop {
             handler.trigger(AudioEvent::Tick);
 
-            let progress = handler
-                .audio_options
+            let instance = handler
+                .audio_instance
                 .as_ref()
-                .expect("Audio options should exist")
-                .progress;
+                .expect("Audio instance should exist")
+                .clone();
+
+            let progress = instance.audio_options.progress;
 
             if progress > 1.0 {
                 handler.trigger(AudioEvent::EndAudio);
                 return Ok(());
             }
 
-            let start = (progress * self.source_data.samples.len() as f64) as usize;
+            let start = (progress * instance.source_data.samples.len() as f64) as usize;
             let bar_count = (terminal_size.width / 2) as usize;
 
             match terminal.draw(|rect| {
@@ -140,7 +141,7 @@ impl AudioInstance {
                 let multiplier = 100_f32;
 
                 if let Some(data) = create_data_from_samples(
-                    self.source_data.samples.clone(),
+                    instance.source_data.samples.clone(),
                     start,
                     step as usize,
                     bar_count,
@@ -155,19 +156,12 @@ impl AudioInstance {
 
                 rect.render_widget(
                     draw_info(
-                        self.path.as_str(),
+                        instance.path.as_str(),
                         handler.runtime_options.volume,
                         handler.runtime_options.is_muted,
                         handler.runtime_options.speed,
-                        handler
-                            .audio_options
-                            .expect("Audio options should exist")
-                            .duration
-                            .as_secs_f64(),
-                        handler
-                            .audio_options
-                            .expect("Audio options should exist")
-                            .passed_time,
+                        instance.audio_options.duration.as_secs_f64(),
+                        instance.audio_options.passed_time,
                         config.get_highlight_color(),
                     ),
                     chunks[1],
@@ -191,11 +185,7 @@ impl AudioInstance {
 
             loop {
                 keybindings.pull_input(handler);
-                if !handler
-                    .audio_options
-                    .expect("Audio options should exist")
-                    .is_paused
-                {
+                if !instance.audio_options.is_paused {
                     break;
                 } else {
                     handler.trigger(AudioEvent::ResetTick);

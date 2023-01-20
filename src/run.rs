@@ -45,9 +45,8 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
                 }
             };
 
-            let mut selection_instance = SelectionInstance::new(paths);
-
-            match selection_instance.show_selection(&config, &mut terminal, &mut handler) {
+            handler.selection_instance = Some(SelectionInstance::new(paths));
+            match SelectionInstance::show_selection(&config, &mut terminal, &mut handler) {
                 Ok(_) => {}
                 Err(err) => return Err(err),
             }

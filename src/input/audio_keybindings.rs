@@ -1,11 +1,10 @@
-use std::{process::exit, time::Duration};
+use std::time::Duration;
 
-use crossterm::{
-    event::{poll, read, Event, KeyCode},
-    terminal::disable_raw_mode,
+use crossterm::event::{poll, read, Event, KeyCode};
+
+use crate::events::{
+    audio_events::AudioEvent, handler::EventHandler, universal_events::UniversalEvent,
 };
-
-use crate::events::{audio_events::AudioEvent, handler::EventHandler};
 
 use super::key::Key;
 
@@ -53,10 +52,7 @@ impl AudioKeybindings {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
                 match key_event.code {
-                    KeyCode::Char('Q') => {
-                        disable_raw_mode().unwrap();
-                        exit(0);
-                    }
+                    KeyCode::Char('Q') => handler.trigger(UniversalEvent::QuitProgram),
                     KeyCode::Char(' ') => handler.trigger(AudioEvent::PauseAudio),
                     KeyCode::Char('m') => handler.trigger(AudioEvent::MuteAudio),
                     KeyCode::Char('r') => handler.trigger(AudioEvent::ResetSpeed),
