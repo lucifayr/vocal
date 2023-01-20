@@ -18,7 +18,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
 
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
-    let mut terminal = match Terminal::new(backend) {
+    let terminal = match Terminal::new(backend) {
         Ok(terminal) => terminal,
         Err(_) => return Err("Failed to create a TUI terminal"),
     };
@@ -30,15 +30,17 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
     sink.set_speed(runtime_options.speed_decimal);
     sink.set_volume(runtime_options.volume_decimal);
 
-    let mut handler = EventHandler::new(&sink, runtime_options);
+    let mut handler = EventHandler::new(sink, runtime_options, config, terminal);
 
     match args.play {
-        Some(paths) => AudioInstance::play_queue(paths, &config, &mut terminal, &mut handler),
+        Some(paths) => AudioInstance::play_queue(paths, &mut handler),
         None => {
             let paths = match args.load {
                 Some(audio) => audio,
                 None => {
-                    match Config::get_audio_directory_content(config.audio_directory.as_str()) {
+                    match Config::get_audio_directory_content(
+                        handler.config.audio_directory.as_str(),
+                    ) {
                         Ok(paths) => paths,
                         Err(err) => return Err(err),
                     }
@@ -46,7 +48,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
             };
 
             handler.selection_instance = Some(SelectionInstance::new(paths));
-            match SelectionInstance::show_selection(&config, &mut terminal, &mut handler) {
+            match SelectionInstance::show_selection(&mut handler) {
                 Ok(_) => {}
                 Err(err) => return Err(err),
             }

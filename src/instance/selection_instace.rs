@@ -4,12 +4,11 @@ use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout},
     widgets::{ListItem, ListState},
-    Terminal,
 };
 
 use crate::{
     events::handler::EventHandler,
-    input::{config::Config, selection_keybindings::SelectionKeybindings},
+    input::selection_keybindings::SelectionKeybindings,
     render::{
         info::{draw_info_no_audio, get_filename_from_path},
         keybindings::draw_keys,
@@ -35,12 +34,8 @@ impl SelectionInstance {
         }
     }
 
-    pub fn show_selection<B: Backend>(
-        config: &Config,
-        terminal: &mut Terminal<B>,
-        handler: &mut EventHandler,
-    ) -> Result<(), &'static str> {
-        match terminal.clear() {
+    pub fn show_selection<B: Backend>(handler: &mut EventHandler<B>) -> Result<(), &'static str> {
+        match handler.terminal.clear() {
             Ok(_) => {}
             Err(_) => return Err("Failed to clear terminal"),
         }
@@ -74,7 +69,7 @@ impl SelectionInstance {
                 .map(|path| ListItem::new(get_filename_from_path(path.as_str()).unwrap_or("???")))
                 .collect();
 
-            match terminal.draw(|rect| {
+            match handler.terminal.draw(|rect| {
                 let chunks_vertical = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([Constraint::Percentage(85), Constraint::Percentage(15)].as_ref())
@@ -87,7 +82,10 @@ impl SelectionInstance {
 
                 if items.is_empty() {
                     rect.render_widget(
-                        draw_info_no_audio(config.audio_directory.as_str(), config.get_color()),
+                        draw_info_no_audio(
+                            handler.config.audio_directory.as_str(),
+                            handler.config.get_color(),
+                        ),
                         rect.size(),
                     )
                 } else {
@@ -95,8 +93,8 @@ impl SelectionInstance {
                         draw_list(
                             items.clone(),
                             "Audio",
-                            config.get_color(),
-                            config.get_highlight_color(),
+                            handler.config.get_color(),
+                            handler.config.get_highlight_color(),
                         ),
                         chunks_horizontal[0],
                         &mut handler
@@ -109,16 +107,16 @@ impl SelectionInstance {
                         draw_list(
                             queue_items.clone(),
                             "Queue",
-                            config.get_color(),
-                            config.get_highlight_color(),
+                            handler.config.get_color(),
+                            handler.config.get_highlight_color(),
                         ),
                         chunks_horizontal[1],
                     );
                     rect.render_widget(
                         draw_keys(
                             keybindings.get_keybindings(),
-                            config.get_color(),
-                            config.get_highlight_color(),
+                            handler.config.get_color(),
+                            handler.config.get_highlight_color(),
                         ),
                         chunks_vertical[1],
                     );
@@ -130,7 +128,7 @@ impl SelectionInstance {
                 }
             }
 
-            keybindings.pull_input(config, terminal, handler);
+            keybindings.pull_input(handler);
             thread::sleep(Duration::from_millis(interval));
         }
     }

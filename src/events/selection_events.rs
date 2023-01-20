@@ -1,3 +1,7 @@
+use tui::backend::Backend;
+
+use crate::instance::audio_instance::AudioInstance;
+
 use super::handler::{Event, EventHandler};
 
 pub enum SelectionEvent {
@@ -22,8 +26,12 @@ trait SelectionActions {
     fn remove_from_queue(&mut self);
 }
 
-impl SelectionActions for EventHandler<'_> {
-    fn play_queue(&mut self) {}
+impl<B: Backend> SelectionActions for EventHandler<B> {
+    fn play_queue(&mut self) {
+        if let Some(instance) = self.selection_instance.as_mut() {
+            AudioInstance::play_queue(instance.queue.clone(), self);
+        }
+    }
 
     fn move_up(&mut self) {
         if let Some(instance) = self.selection_instance.as_mut() {
@@ -100,7 +108,7 @@ impl SelectionActions for EventHandler<'_> {
     }
 }
 impl Event for SelectionEvent {
-    fn trigger(&self, handler: &mut EventHandler) {
+    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>) {
         match self {
             SelectionEvent::PlayQueue => handler.play_queue(),
             SelectionEvent::MoveUp => handler.move_up(),

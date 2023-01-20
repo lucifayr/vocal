@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use crossterm::event::{poll, read, Event, KeyCode};
+use tui::backend::Backend;
 
 use crate::events::{
     audio_events::AudioEvent, handler::EventHandler, universal_events::UniversalEvent,
@@ -48,7 +49,7 @@ impl AudioKeybindings {
         ]
     }
 
-    pub fn pull_input(&self, handler: &mut EventHandler) {
+    pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B>) {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
                 match key_event.code {

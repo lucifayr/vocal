@@ -1,5 +1,7 @@
 use std::time::Instant;
 
+use tui::backend::Backend;
+
 use super::handler::{Event, EventHandler};
 
 pub enum AudioEvent {
@@ -30,7 +32,7 @@ trait AudioActions {
     fn reset_tick(&mut self);
 }
 
-impl AudioActions for EventHandler<'_> {
+impl<B: Backend> AudioActions for EventHandler<B> {
     fn pause(&mut self) {
         if let Some(instance) = self.audio_instance.as_mut() {
             instance.audio_options.is_paused = !instance.audio_options.is_paused;
@@ -129,7 +131,7 @@ impl AudioActions for EventHandler<'_> {
 }
 
 impl Event for AudioEvent {
-    fn trigger(&self, handler: &mut EventHandler) {
+    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>) {
         match self {
             AudioEvent::StartAudio => {}
             AudioEvent::EndAudio => {}

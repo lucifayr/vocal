@@ -43,32 +43,22 @@ impl AudioInstance {
         })
     }
 
-    pub fn play_queue<B: Backend>(
-        content: Vec<String>,
-        config: &Config,
-        terminal: &mut Terminal<B>,
-        handler: &mut EventHandler,
-    ) {
+    pub fn play_queue<B: Backend>(content: Vec<String>, handler: &mut EventHandler<B>) {
         handler.trigger(AudioEvent::StartQueue);
 
-        match terminal.clear() {
+        match handler.terminal.clear() {
             Ok(_) => {}
             Err(_) => println!("Failed to clear terminal"),
         }
 
         for audio in content {
-            AudioInstance::start_instance(audio, config, terminal, handler)
+            AudioInstance::start_instance(audio, handler)
         }
 
         handler.trigger(AudioEvent::EndQueue);
     }
 
-    pub fn start_instance<B: Backend>(
-        path: String,
-        config: &Config,
-        terminal: &mut Terminal<B>,
-        handler: &mut EventHandler,
-    ) {
+    pub fn start_instance<B: Backend>(path: String, handler: &mut EventHandler<B>) {
         if let Some(instance) = AudioInstance::new(path.as_str()) {
             let source = match SourceData::get_source(path.as_str()) {
                 Some(source) => source,
@@ -76,7 +66,7 @@ impl AudioInstance {
             };
 
             handler.audio_instance = Some(instance);
-            match AudioInstance::play_audio(source, config, terminal, handler) {
+            match AudioInstance::play_audio(source, handler) {
                 Ok(_) => {}
                 Err(err) => println!("{err}"),
             };
@@ -85,12 +75,10 @@ impl AudioInstance {
 
     pub fn play_audio<'a, B: Backend>(
         source: Decoder<File>,
-        config: &'a Config,
-        terminal: &'a mut Terminal<B>,
-        handler: &'a mut EventHandler,
+        handler: &'a mut EventHandler<B>,
     ) -> Result<(), &'a str> {
         handler.trigger(AudioEvent::StartAudio);
-        let terminal_size = match terminal.size() {
+        let terminal_size = match handler.terminal.size() {
             Ok(size) => size,
             Err(_) => return Err("Failed to get terminal size"),
         };
@@ -121,7 +109,7 @@ impl AudioInstance {
             let start = (progress * instance.source_data.samples.len() as f64) as usize;
             let bar_count = (terminal_size.width / 2) as usize;
 
-            match terminal.draw(|rect| {
+            match handler.terminal.draw(|rect| {
                 let size = rect.size();
                 let chunks = Layout::default()
                     .direction(Direction::Vertical)
@@ -149,7 +137,11 @@ impl AudioInstance {
                     multiplier,
                 ) {
                     rect.render_widget(
-                        draw_chart(data.as_slice(), max * multiplier as u64, config.get_color()),
+                        draw_chart(
+                            data.as_slice(),
+                            max * multiplier as u64,
+                            handler.config.get_color(),
+                        ),
                         chunks[0],
                     );
                 }
@@ -162,17 +154,17 @@ impl AudioInstance {
                         handler.runtime_options.speed,
                         instance.audio_options.duration.as_secs_f64(),
                         instance.audio_options.passed_time,
-                        config.get_highlight_color(),
+                        handler.config.get_highlight_color(),
                     ),
                     chunks[1],
                 );
-                rect.render_widget(draw_bar(progress, config.get_color()), chunks[2]);
+                rect.render_widget(draw_bar(progress, handler.config.get_color()), chunks[2]);
 
                 rect.render_widget(
                     draw_keys(
                         keybindings.get_keybindings(),
-                        config.get_color(),
-                        config.get_highlight_color(),
+                        handler.config.get_color(),
+                        handler.config.get_highlight_color(),
                     ),
                     chunks[3],
                 );

@@ -55,12 +55,7 @@ impl SelectionKeybindings {
         ]
     }
 
-    pub fn pull_input<B: Backend>(
-        &self,
-        config: &Config,
-        terminal: &mut Terminal<B>,
-        handler: &mut EventHandler,
-    ) {
+    pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B>) {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
                 match key_event.code {
@@ -73,8 +68,6 @@ impl SelectionKeybindings {
                                 .expect("Selection instance should exist")
                                 .queue
                                 .clone(),
-                            config,
-                            terminal,
                             handler,
                         );
                     }
