@@ -23,45 +23,51 @@ pub struct AudioKeybindings {
 impl std::default::Default for AudioKeybindings {
     fn default() -> Self {
         AudioKeybindings {
-            quit: Key::new("Q", "quit"),
-            pause: Key::new("Space", "pause"),
-            mute: Key::new("m", "mute"),
-            volume_up: Key::new("k", "volume up"),
-            volume_down: Key::new("j", "volume down"),
-            speed_up: Key::new("L", "speed up"),
-            speed_down: Key::new("H", "speed down"),
-            reset_speed: Key::new("r", "reset speed"),
+            quit: Key::new('Q', "Q", "quit"),
+            pause: Key::new(' ', "Space", "pause"),
+            mute: Key::new('m', "m", "mute"),
+            volume_up: Key::new('k', "k", "volume up"),
+            volume_down: Key::new('j', "j", "volume down"),
+            speed_up: Key::new('L', "L", "speed up"),
+            speed_down: Key::new('H', "H", "speed down"),
+            reset_speed: Key::new('r', "r", "reset speed"),
         }
     }
 }
 
 impl AudioKeybindings {
-    pub fn get_keybindings(&self) -> Vec<Key> {
+    pub fn get_keybindings(&self) -> Vec<&Key> {
         vec![
-            self.quit.clone(),
-            self.pause.clone(),
-            self.mute.clone(),
-            self.volume_up.clone(),
-            self.volume_down.clone(),
-            self.speed_up.clone(),
-            self.speed_down.clone(),
-            self.reset_speed.clone(),
+            &self.quit,
+            &self.pause,
+            &self.mute,
+            &self.volume_up,
+            &self.volume_down,
+            &self.speed_up,
+            &self.speed_down,
+            &self.reset_speed,
         ]
     }
 
     pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B>) {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
-                match key_event.code {
-                    KeyCode::Char('Q') => handler.trigger(UniversalEvent::QuitProgram),
-                    KeyCode::Char(' ') => handler.trigger(AudioEvent::PauseAudio),
-                    KeyCode::Char('m') => handler.trigger(AudioEvent::MuteAudio),
-                    KeyCode::Char('r') => handler.trigger(AudioEvent::ResetSpeed),
-                    KeyCode::Up | KeyCode::Char('k') => handler.trigger(AudioEvent::VolumeUp),
-                    KeyCode::Down | KeyCode::Char('j') => handler.trigger(AudioEvent::VolumeDown),
-                    KeyCode::Char('L') => handler.trigger(AudioEvent::SpeedUp),
-                    KeyCode::Char('H') => handler.trigger(AudioEvent::SpeedDown),
-                    _ => {}
+                if key_event.code == KeyCode::Char(self.quit.key()) {
+                    handler.trigger(UniversalEvent::QuitProgram)
+                } else if key_event.code == KeyCode::Char(self.pause.key()) {
+                    handler.trigger(AudioEvent::PauseAudio)
+                } else if key_event.code == KeyCode::Char(self.mute.key()) {
+                    handler.trigger(AudioEvent::MuteAudio)
+                } else if key_event.code == KeyCode::Char(self.reset_speed.key()) {
+                    handler.trigger(AudioEvent::ResetSpeed)
+                } else if key_event.code == KeyCode::Char(self.volume_up.key()) {
+                    handler.trigger(AudioEvent::VolumeUp)
+                } else if key_event.code == KeyCode::Char(self.volume_down.key()) {
+                    handler.trigger(AudioEvent::VolumeDown)
+                } else if key_event.code == KeyCode::Char(self.speed_up.key()) {
+                    handler.trigger(AudioEvent::SpeedUp)
+                } else if key_event.code == KeyCode::Char(self.speed_down.key()) {
+                    handler.trigger(AudioEvent::SpeedDown)
                 }
             }
         }

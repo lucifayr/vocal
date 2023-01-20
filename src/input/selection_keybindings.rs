@@ -1,16 +1,13 @@
 use std::time::Duration;
 
 use crossterm::event::{poll, read, Event, KeyCode};
-use tui::{backend::Backend};
+use tui::backend::Backend;
 
-use crate::{
-    events::{
-        handler::EventHandler, selection_events::SelectionEvent, universal_events::UniversalEvent,
-    },
-    instance::audio_instance::AudioInstance,
+use crate::events::{
+    handler::EventHandler, selection_events::SelectionEvent, universal_events::UniversalEvent,
 };
 
-use super::{key::Key};
+use super::key::Key;
 
 pub struct SelectionKeybindings {
     pub quit: Key,
@@ -27,62 +24,55 @@ pub struct SelectionKeybindings {
 impl std::default::Default for SelectionKeybindings {
     fn default() -> Self {
         SelectionKeybindings {
-            quit: Key::new("q", "quit"),
-            play: Key::new("p", "play"),
-            up: Key::new("k", "up"),
-            down: Key::new("j", "down"),
-            go_to_top: Key::new("g", "go to top"),
-            go_to_bottom: Key::new("G", "go to bottom"),
-            add_to_bottom_of_queue: Key::new("l", "add to top of queue"),
-            add_to_top_of_queue: Key::new("L", "add to bottom of queue"),
-            remove_from_queue: Key::new("h", "remove from queue"),
+            quit: Key::new('q', "q", "pause"),
+            play: Key::new('p', "p", "play"),
+            up: Key::new('k', "k", "up"),
+            down: Key::new('j', "j", "down"),
+            go_to_top: Key::new('g', "g", "go to top"),
+            go_to_bottom: Key::new('G', "G", "go to bottom"),
+            add_to_top_of_queue: Key::new('l', "l", "add to top of queue"),
+            add_to_bottom_of_queue: Key::new('L', "L", "add to bottom of queue"),
+            remove_from_queue: Key::new('h', "h", "remove from queue"),
         }
     }
 }
 
 impl SelectionKeybindings {
-    pub fn get_keybindings(&self) -> Vec<Key> {
+    pub fn get_keybindings(&self) -> Vec<&Key> {
         vec![
-            self.quit.clone(),
-            self.play.clone(),
-            self.up.clone(),
-            self.down.clone(),
-            self.go_to_top.clone(),
-            self.go_to_bottom.clone(),
-            self.add_to_bottom_of_queue.clone(),
-            self.add_to_top_of_queue.clone(),
-            self.remove_from_queue.clone(),
+            &self.quit,
+            &self.play,
+            &self.up,
+            &self.down,
+            &self.go_to_top,
+            &self.go_to_bottom,
+            &self.add_to_top_of_queue,
+            &self.add_to_bottom_of_queue,
+            &self.remove_from_queue,
         ]
     }
 
     pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B>) {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
-                match key_event.code {
-                    KeyCode::Char('q') => handler.trigger(UniversalEvent::QuitProgram),
-                    KeyCode::Char('p') => {
-                        AudioInstance::play_queue(
-                            handler
-                                .selection_instance
-                                .as_ref()
-                                .expect("Selection instance should exist")
-                                .queue
-                                .clone(),
-                            handler,
-                        );
-                    }
-                    KeyCode::Up | KeyCode::Char('k') => handler.trigger(SelectionEvent::MoveUp),
-                    KeyCode::Down | KeyCode::Char('j') => handler.trigger(SelectionEvent::MoveDown),
-                    KeyCode::Char('g') => handler.trigger(SelectionEvent::MoveToTop),
-                    KeyCode::Char('G') => handler.trigger(SelectionEvent::MoveToBottom),
-                    KeyCode::Right | KeyCode::Char('l') => {
-                        handler.trigger(SelectionEvent::AddToTopOfQueue)
-                    }
-                    KeyCode::Char('L') => handler.trigger(SelectionEvent::AddToBottomOfQueue),
-                    KeyCode::Left | KeyCode::Char('h') => {
-                        handler.trigger(SelectionEvent::RemoveFromQueue)
-                    }
-                    _ => {}
+                if key_event.code == KeyCode::Char(self.quit.key()) {
+                    handler.trigger(UniversalEvent::QuitProgram)
+                } else if key_event.code == KeyCode::Char(self.play.key()) {
+                    handler.trigger(SelectionEvent::PlayQueue)
+                } else if key_event.code == KeyCode::Char(self.up.key()) {
+                    handler.trigger(SelectionEvent::MoveUp)
+                } else if key_event.code == KeyCode::Char(self.down.key()) {
+                    handler.trigger(SelectionEvent::MoveDown)
+                } else if key_event.code == KeyCode::Char(self.go_to_top.key()) {
+                    handler.trigger(SelectionEvent::MoveToTop)
+                } else if key_event.code == KeyCode::Char(self.go_to_bottom.key()) {
+                    handler.trigger(SelectionEvent::MoveToBottom)
+                } else if key_event.code == KeyCode::Char(self.add_to_top_of_queue.key()) {
+                    handler.trigger(SelectionEvent::AddToTopOfQueue)
+                } else if key_event.code == KeyCode::Char(self.add_to_bottom_of_queue.key()) {
+                    handler.trigger(SelectionEvent::AddToBottomOfQueue)
+                } else if key_event.code == KeyCode::Char(self.remove_from_queue.key()) {
+                    handler.trigger(SelectionEvent::RemoveFromQueue)
                 }
             }
         }
