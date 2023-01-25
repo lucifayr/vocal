@@ -3,7 +3,10 @@ use tui::{backend::Backend, Terminal};
 
 use crate::{
     input::config::Config,
-    instance::{audio_instance::AudioInstance, selection_instace::SelectionInstance},
+    instance::{
+        audio_instance::AudioInstance, queue_instance::QueueInstance,
+        selection_instace::SelectionInstance,
+    },
     properties::runtime_properties::RuntimeOptions,
 };
 
@@ -18,6 +21,7 @@ pub struct EventHandler<B: Backend> {
     pub terminal: Terminal<B>,
     pub audio_instance: Option<AudioInstance>,
     pub selection_instance: Option<SelectionInstance>,
+    pub queue_instance: Option<QueueInstance>,
 }
 
 impl<B: Backend> EventHandler<B> {
@@ -31,6 +35,7 @@ impl<B: Backend> EventHandler<B> {
             sink,
             audio_instance: None,
             selection_instance: None,
+            queue_instance: None,
             runtime_options,
             config,
             terminal,

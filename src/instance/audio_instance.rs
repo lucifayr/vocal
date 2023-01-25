@@ -42,19 +42,6 @@ impl AudioInstance {
         })
     }
 
-    pub fn play_queue<B: Backend>(content: Vec<String>, handler: &mut EventHandler<B>) {
-        match handler.terminal.clear() {
-            Ok(_) => {}
-            Err(_) => println!("Failed to clear terminal"),
-        }
-
-        for audio in content {
-            AudioInstance::start_instance(audio, handler)
-        }
-
-        handler.trigger(AudioEvent::EndQueue);
-    }
-
     pub fn start_instance<B: Backend>(path: String, handler: &mut EventHandler<B>) {
         if let Some(instance) = AudioInstance::new(path.as_str()) {
             let source = match SourceData::get_source(path.as_str()) {

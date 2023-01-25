@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use tui::backend::Backend;
 
-use crate::instance::audio_instance::AudioInstance;
+use crate::instance::queue_instance::QueueInstance;
 
 use super::handler::{Event, EventHandler};
 
@@ -38,9 +38,7 @@ trait AudioActions {
 
 impl<B: Backend> AudioActions for EventHandler<B> {
     fn start_queue(&mut self) {
-        if let Some(instance) = self.selection_instance.as_mut() {
-            AudioInstance::play_queue(instance.queue.clone(), self);
-        }
+        QueueInstance::play_queue(self);
     }
 
     fn pause(&mut self) {

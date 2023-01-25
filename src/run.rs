@@ -6,7 +6,7 @@ use crate::{
     audio::init::init_audio_handler,
     events::handler::EventHandler,
     input::{args::Args, config::Config},
-    instance::{audio_instance::AudioInstance, selection_instace::SelectionInstance},
+    instance::{queue_instance::QueueInstance, selection_instace::SelectionInstance},
     properties::runtime_properties::RuntimeOptions,
 };
 
@@ -33,7 +33,10 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
     let mut handler = EventHandler::new(sink, runtime_options, config, terminal);
 
     match args.play {
-        Some(paths) => AudioInstance::play_queue(paths, &mut handler),
+        Some(paths) => {
+            handler.queue_instance = Some(QueueInstance::new(paths));
+            QueueInstance::play_queue(&mut handler);
+        }
         None => {
             let paths = match args.load {
                 Some(audio) => audio,
