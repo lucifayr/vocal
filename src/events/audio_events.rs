@@ -2,16 +2,11 @@ use std::time::Instant;
 
 use tui::backend::Backend;
 
-use crate::instance::queue_instance::QueueInstance;
-
 use super::handler::{Event, EventHandler};
 
 pub enum AudioEvent {
     StartAudio,
     EndAudio,
-    StartQueue,
-    EndQueue,
-    StopQueue,
     PauseAudio,
     MuteAudio,
     ResetSpeed,
@@ -24,7 +19,6 @@ pub enum AudioEvent {
 }
 
 trait AudioActions {
-    fn start_queue(&mut self);
     fn pause(&mut self);
     fn mute(&mut self);
     fn reset_speed(&mut self);
@@ -37,10 +31,6 @@ trait AudioActions {
 }
 
 impl<B: Backend> AudioActions for EventHandler<B> {
-    fn start_queue(&mut self) {
-        QueueInstance::play_queue(self);
-    }
-
     fn pause(&mut self) {
         if let Some(instance) = self.audio_instance.as_mut() {
             instance.audio_options.is_paused = !instance.audio_options.is_paused;
@@ -143,9 +133,6 @@ impl Event for AudioEvent {
         match self {
             AudioEvent::StartAudio => {}
             AudioEvent::EndAudio => {}
-            AudioEvent::StartQueue => handler.start_queue(),
-            AudioEvent::EndQueue => {}
-            AudioEvent::StopQueue => {}
             AudioEvent::PauseAudio => handler.pause(),
             AudioEvent::MuteAudio => handler.mute(),
             AudioEvent::ResetSpeed => handler.reset_speed(),

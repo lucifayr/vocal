@@ -1,5 +1,5 @@
 pub mod args;
-pub mod audio_keybindings;
 pub mod config;
 pub mod key;
+pub mod playback_keybindings;
 pub mod selection_keybindings;

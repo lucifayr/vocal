@@ -31,7 +31,6 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
     sink.set_volume(runtime_options.volume_decimal);
 
     let mut handler = EventHandler::new(sink, runtime_options, config, terminal);
-
     match args.play {
         Some(paths) => {
             handler.queue_instance = Some(QueueInstance::new(paths));

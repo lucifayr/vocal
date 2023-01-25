@@ -9,7 +9,7 @@ use tui::{
 use crate::{
     audio::source_data::SourceData,
     events::{audio_events::AudioEvent, handler::EventHandler},
-    input::audio_keybindings::AudioKeybindings,
+    input::playback_keybindings::PlaybackKeybindings,
     properties::audio_properties::AudioOptions,
     render::{
         bar::draw_bar,
@@ -22,6 +22,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct AudioInstance {
     pub audio_options: AudioOptions,
+    pub interupted: bool,
     source_data: SourceData,
     path: String,
 }
@@ -39,6 +40,7 @@ impl AudioInstance {
             source_data,
             audio_options: AudioOptions::new(duration),
             path: path.to_owned(),
+            interupted: false,
         })
     }
 
@@ -67,7 +69,7 @@ impl AudioInstance {
             Err(_) => return Err("Failed to get terminal size"),
         };
 
-        let keybindings = AudioKeybindings::default();
+        let keybindings = PlaybackKeybindings::default();
 
         let interval = 16;
         let sample_rate = source.sample_rate();
@@ -75,6 +77,13 @@ impl AudioInstance {
 
         handler.sink.append(source);
         loop {
+            if let Some(instance) = handler.queue_instance.as_ref() {
+                if instance.interupted {
+                    handler.trigger(AudioEvent::EndAudio);
+                    return Ok(());
+                }
+            }
+
             handler.trigger(AudioEvent::Tick);
 
             let instance = handler
