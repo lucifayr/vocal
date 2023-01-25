@@ -43,8 +43,6 @@ impl AudioInstance {
     }
 
     pub fn play_queue<B: Backend>(content: Vec<String>, handler: &mut EventHandler<B>) {
-        handler.trigger(AudioEvent::StartQueue);
-
         match handler.terminal.clear() {
             Ok(_) => {}
             Err(_) => println!("Failed to clear terminal"),

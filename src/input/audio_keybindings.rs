@@ -11,6 +11,7 @@ use super::key::Key;
 
 pub struct AudioKeybindings {
     pub quit: Key,
+    pub stop_queue: Key,
     pub pause: Key,
     pub mute: Key,
     pub volume_up: Key,
@@ -24,6 +25,7 @@ impl std::default::Default for AudioKeybindings {
     fn default() -> Self {
         AudioKeybindings {
             quit: Key::new('Q', "Q", "quit"),
+            stop_queue: Key::new('q', "q", "stop queue and return to selection"),
             pause: Key::new(' ', "Space", "pause"),
             mute: Key::new('m', "m", "mute"),
             volume_up: Key::new('k', "k", "volume up"),
@@ -39,6 +41,7 @@ impl AudioKeybindings {
     pub fn get_keybindings(&self) -> Vec<&Key> {
         vec![
             &self.quit,
+            &self.stop_queue,
             &self.pause,
             &self.mute,
             &self.volume_up,
@@ -54,6 +57,8 @@ impl AudioKeybindings {
             if let Ok(Event::Key(key_event)) = read() {
                 if key_event.code == KeyCode::Char(self.quit.key()) {
                     handler.trigger(UniversalEvent::QuitProgram)
+                } else if key_event.code == KeyCode::Char(self.stop_queue.key()) {
+                    handler.trigger(AudioEvent::EndQueue)
                 } else if key_event.code == KeyCode::Char(self.pause.key()) {
                     handler.trigger(AudioEvent::PauseAudio)
                 } else if key_event.code == KeyCode::Char(self.mute.key()) {
