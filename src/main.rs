@@ -34,12 +34,7 @@ fn main() -> Result<(), &'static str> {
         }
     }
 
-    match run(config, Args::parse()) {
-        Ok(_) => {}
-        Err(err) => {
-            return Err(err);
-        }
-    }
+    run(config, Args::parse())?;
 
     match disable_raw_mode() {
         Ok(_) => {}
