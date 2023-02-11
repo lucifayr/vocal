@@ -2,8 +2,11 @@ use rodio::Sink;
 use tui::backend::Backend;
 
 use crate::{
-    audio::player::Player,
-    events::{handler::EventHandler, queue_events::QueueEvent},
+    audio::{player::Player, source_data::SourceData},
+    events::{
+        handler::{trigger, EventHandler},
+        queue_events::QueueEvent,
+    },
 };
 
 use super::Instance;
@@ -16,25 +19,25 @@ pub struct Queue {
 }
 
 impl Instance for Queue {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B, Queue>) {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
         handler.clear_terminal().unwrap();
 
         let mut looping = true;
         while looping {
             looping = self.looping;
 
-            for path in self.queue.iter() {
+            for path in self.queue.clone().iter() {
                 if self.interupted {
-                    handler.trigger(QueueEvent::EndQueue);
+                    trigger(QueueEvent::EndQueue, handler, self);
                     return;
                 }
 
-                let player = Player::new(path).unwrap();
-                player.play(&mut handler);
+                let mut player = Player::new(path).unwrap();
+                player.play(SourceData::get_source(path).unwrap(), handler, self);
             }
         }
 
-        handler.trigger(QueueEvent::EndQueue);
+        trigger(QueueEvent::EndQueue, handler, self);
     }
 }
 

@@ -5,7 +5,9 @@ use tui::backend::Backend;
 
 use crate::{
     events::{
-        handler::EventHandler, selection_events::SelectionEvent, universal_events::UniversalEvent,
+        handler::{trigger, EventHandler},
+        selection_events::SelectionEvent,
+        universal_events::UniversalEvent,
     },
     instance::selection::Selection,
 };
@@ -55,27 +57,27 @@ impl SelectionKeybindings {
         ]
     }
 
-    pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B, Selection>) {
+    pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Selection) {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
                 if key_event.code == KeyCode::Char(self.quit.key()) {
-                    handler.trigger(UniversalEvent::QuitProgram)
+                    trigger(UniversalEvent::QuitProgram, handler, instance)
                 } else if key_event.code == KeyCode::Char(self.play.key()) {
-                    handler.trigger(SelectionEvent::PlayQueue)
+                    trigger(SelectionEvent::PlayQueue, handler, instance)
                 } else if key_event.code == KeyCode::Char(self.up.key()) {
-                    handler.trigger(SelectionEvent::MoveUp)
+                    trigger(SelectionEvent::MoveUp, handler, instance)
                 } else if key_event.code == KeyCode::Char(self.down.key()) {
-                    handler.trigger(SelectionEvent::MoveDown)
+                    trigger(SelectionEvent::MoveDown, handler, instance)
                 } else if key_event.code == KeyCode::Char(self.go_to_top.key()) {
-                    handler.trigger(SelectionEvent::MoveToTop)
+                    trigger(SelectionEvent::MoveToTop, handler, instance)
                 } else if key_event.code == KeyCode::Char(self.go_to_bottom.key()) {
-                    handler.trigger(SelectionEvent::MoveToBottom)
+                    trigger(SelectionEvent::MoveToBottom, handler, instance)
                 } else if key_event.code == KeyCode::Char(self.add_to_top_of_queue.key()) {
-                    handler.trigger(SelectionEvent::AddToTopOfQueue)
+                    trigger(SelectionEvent::AddToTopOfQueue, handler, instance)
                 } else if key_event.code == KeyCode::Char(self.add_to_bottom_of_queue.key()) {
-                    handler.trigger(SelectionEvent::AddToBottomOfQueue)
+                    trigger(SelectionEvent::AddToBottomOfQueue, handler, instance)
                 } else if key_event.code == KeyCode::Char(self.remove_from_queue.key()) {
-                    handler.trigger(SelectionEvent::RemoveFromQueue)
+                    trigger(SelectionEvent::RemoveFromQueue, handler, instance)
                 }
             }
         }

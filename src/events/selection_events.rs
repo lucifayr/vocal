@@ -1,14 +1,8 @@
 use tui::backend::Backend;
 
-use crate::{
-    audio::init::init_audio_handler,
-    instance::{queue::Queue, selection::Selection, Instance},
-};
+use crate::instance::selection::Selection;
 
-use super::{
-    handler::{Event, EventHandler},
-    queue_events::QueueEvent,
-};
+use super::handler::{Event, EventHandler};
 
 pub enum SelectionEvent {
     PlayQueue,
@@ -22,84 +16,79 @@ pub enum SelectionEvent {
 }
 
 trait SelectionActions {
-    fn move_up(&mut self);
-    fn move_down(&mut self);
-    fn move_to_top(&mut self);
-    fn move_to_bottom(&mut self);
-    fn add_to_top_of_queue(&mut self);
-    fn add_to_bottom_of_queue(&mut self);
-    fn remove_from_queue(&mut self);
+    fn move_up(instance: &mut Selection);
+    fn move_down(instance: &mut Selection);
+    fn move_to_top(instance: &mut Selection);
+    fn move_to_bottom(instance: &mut Selection);
+    fn add_to_top_of_queue(instance: &mut Selection);
+    fn add_to_bottom_of_queue(instance: &mut Selection);
+    fn remove_from_queue(instance: &mut Selection);
 }
 
-impl<B: Backend> SelectionActions for EventHandler<B, Selection> {
-    fn move_up(&mut self) {
-        if let Some(selected) = self.instance.state.selected() {
-            let amount = self.instance.content.len();
+impl<B: Backend> SelectionActions for EventHandler<B> {
+    fn move_up(instance: &mut Selection) {
+        if let Some(selected) = instance.state.selected() {
+            let amount = instance.content.len();
             if selected > 0 {
-                self.instance.state.select(Some(selected - 1));
+                instance.state.select(Some(selected - 1));
             } else {
-                self.instance.state.select(Some(amount - 1));
+                instance.state.select(Some(amount - 1));
             }
         }
     }
 
-    fn move_down(&mut self) {
-        if let Some(selected) = self.instance.state.selected() {
-            let amount = self.instance.content.len();
+    fn move_down(instance: &mut Selection) {
+        if let Some(selected) = instance.state.selected() {
+            let amount = instance.content.len();
             if selected >= amount - 1 {
-                self.instance.state.select(Some(0));
+                instance.state.select(Some(0));
             } else {
-                self.instance.state.select(Some(selected + 1));
+                instance.state.select(Some(selected + 1));
             }
         }
     }
 
-    fn move_to_top(&mut self) {
-        self.instance.state.select(Some(0));
+    fn move_to_top(instance: &mut Selection) {
+        instance.state.select(Some(0));
     }
-    fn move_to_bottom(&mut self) {
-        let amount = self.instance.content.len();
-        self.instance.state.select(Some(amount - 1));
+    fn move_to_bottom(instance: &mut Selection) {
+        let amount = instance.content.len();
+        instance.state.select(Some(amount - 1));
     }
 
-    fn add_to_top_of_queue(&mut self) {
-        if let Some(selected) = self.instance.state.selected() {
-            if let Some(item) = self.instance.content.get(selected) {
-                if !self.instance.queue.contains(item) {
-                    self.instance.queue.splice(0..0, vec![item.to_owned()]);
+    fn add_to_top_of_queue(instance: &mut Selection) {
+        if let Some(selected) = instance.state.selected() {
+            if let Some(item) = instance.content.get(selected) {
+                if !instance.queue.contains(item) {
+                    instance.queue.splice(0..0, vec![item.to_owned()]);
                 }
             };
         }
     }
 
-    fn add_to_bottom_of_queue(&mut self) {
-        if let Some(selected) = self.instance.state.selected() {
-            if let Some(item) = self.instance.content.get(selected) {
-                if !self.instance.queue.contains(item) {
-                    self.instance.queue.push(item.to_owned())
+    fn add_to_bottom_of_queue(instance: &mut Selection) {
+        if let Some(selected) = instance.state.selected() {
+            if let Some(item) = instance.content.get(selected) {
+                if !instance.queue.contains(item) {
+                    instance.queue.push(item.to_owned())
                 }
             };
         }
     }
 
-    fn remove_from_queue(&mut self) {
-        if let Some(selected) = self.instance.state.selected() {
-            if let Some(item) = self.instance.content.get(selected) {
-                if let Some(index) = self
-                    .instance
-                    .queue
-                    .iter()
-                    .position(|element| element == item)
-                {
-                    self.instance.queue.remove(index);
+    fn remove_from_queue(instance: &mut Selection) {
+        if let Some(selected) = instance.state.selected() {
+            if let Some(item) = instance.content.get(selected) {
+                if let Some(index) = instance.queue.iter().position(|element| element == item) {
+                    instance.queue.remove(index);
                 }
             }
         }
     }
 }
 
-impl Event for SelectionEvent {
-    fn trigger_selection<B: Backend>(&self, handler: &mut EventHandler<B, Selection>) {
+impl Event<Selection> for SelectionEvent {
+    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Selection) {
         match self {
             SelectionEvent::PlayQueue => {
                 // let (sink, _stream) = init_audio_handler().unwrap();
@@ -107,15 +96,15 @@ impl Event for SelectionEvent {
                 // handler.instance = queue;
                 // handler.instance.run(*handler);
             }
-            SelectionEvent::MoveUp => handler.move_up(),
-            SelectionEvent::MoveDown => handler.move_down(),
-            SelectionEvent::MoveToTop => handler.move_to_top(),
-            SelectionEvent::MoveToBottom => handler.move_to_bottom(),
-            SelectionEvent::AddToTopOfQueue => handler.add_to_top_of_queue(),
-            SelectionEvent::AddToBottomOfQueue => handler.add_to_bottom_of_queue(),
-            SelectionEvent::RemoveFromQueue => handler.remove_from_queue(),
+            SelectionEvent::MoveUp => EventHandler::<B>::move_up(instance),
+            SelectionEvent::MoveDown => EventHandler::<B>::move_down(instance),
+            SelectionEvent::MoveToTop => EventHandler::<B>::move_to_top(instance),
+            SelectionEvent::MoveToBottom => EventHandler::<B>::move_to_bottom(instance),
+            SelectionEvent::AddToTopOfQueue => EventHandler::<B>::add_to_top_of_queue(instance),
+            SelectionEvent::AddToBottomOfQueue => {
+                EventHandler::<B>::add_to_bottom_of_queue(instance)
+            }
+            SelectionEvent::RemoveFromQueue => EventHandler::<B>::remove_from_queue(instance),
         }
     }
-
-    fn trigger_queue<B: Backend>(&self, _handler: &mut EventHandler<B, Queue>) {}
 }

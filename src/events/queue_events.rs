@@ -13,40 +13,34 @@ pub enum QueueEvent {
 }
 
 trait QueueActions {
-    fn stop_queue(&mut self);
-    fn loop_queue(&mut self);
-    fn stop_loop_queue(&mut self);
+    fn stop_queue(instance: &mut Queue);
+    fn loop_queue(instance: &mut Queue);
+    fn stop_loop_queue(instance: &mut Queue);
 }
 
-impl<B: Backend> QueueActions for EventHandler<B, Queue> {
-    fn stop_queue(&mut self) {
-        self.instance.sink.stop();
-        self.instance.interupted = true;
+impl<B: Backend> QueueActions for EventHandler<B> {
+    fn stop_queue(instance: &mut Queue) {
+        instance.sink.stop();
+        instance.interupted = true;
     }
 
-    fn loop_queue(&mut self) {
-        self.instance.looping = true;
+    fn loop_queue(instance: &mut Queue) {
+        instance.looping = true;
     }
 
-    fn stop_loop_queue(&mut self) {
-        self.instance.looping = false;
+    fn stop_loop_queue(instance: &mut Queue) {
+        instance.looping = false;
     }
 }
 
-impl Event for QueueEvent {
-    fn trigger_queue<B: Backend>(&self, handler: &mut EventHandler<B, Queue>) {
+impl Event<Queue> for QueueEvent {
+    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Queue) {
         match self {
             QueueEvent::StartQueue => {}
             QueueEvent::EndQueue => {}
-            QueueEvent::StopQueue => handler.stop_queue(),
-            QueueEvent::LoopQueue => handler.loop_queue(),
-            QueueEvent::StopLoopQueue => handler.stop_loop_queue(),
+            QueueEvent::StopQueue => EventHandler::<B>::stop_queue(instance),
+            QueueEvent::LoopQueue => EventHandler::<B>::loop_queue(instance),
+            QueueEvent::StopLoopQueue => EventHandler::<B>::stop_loop_queue(instance),
         }
-    }
-
-    fn trigger_selection<B: Backend>(
-        &self,
-        handler: &mut EventHandler<B, crate::instance::selection::Selection>,
-    ) {
     }
 }

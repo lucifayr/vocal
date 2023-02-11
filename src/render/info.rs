@@ -48,7 +48,7 @@ pub fn draw_info(
     .alignment(Alignment::Center)
 }
 
-pub fn draw_info_no_audio(path_to_audio_directory: &str, color: Color) -> Paragraph {
+pub fn draw_info_no_audio<'a>(path_to_audio_directory: String, color: Color) -> Paragraph<'a> {
     Paragraph::new(Text::styled(
         format!(
             "Add some files into {} or pass some paths to the vocal --load command",

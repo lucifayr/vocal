@@ -11,11 +11,6 @@ use crate::{
 };
 
 pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
-    let (sink, _stream) = match init_audio_handler() {
-        Some(handler_data) => handler_data,
-        None => return Err("Failed to create audio sink"),
-    };
-
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
     let terminal = match Terminal::new(backend) {
@@ -27,14 +22,19 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
     let speed = config.starting_speed.clamp(10, 200);
     let state = RuntimeState::new(volume, speed);
 
-    sink.set_volume(state.get_volume_decimal());
-    sink.set_speed(state.get_speed_decimal());
-
     match args.play {
         Some(paths) => {
-            let queue = Queue::new(paths, sink);
-            let mut handler = EventHandler::new(queue, state, config, terminal);
-            handler.instance.run(&mut handler);
+            let (sink, _stream) = match init_audio_handler() {
+                Some(handler_data) => handler_data,
+                None => return Err("Failed to create audio sink"),
+            };
+
+            sink.set_volume(state.get_volume_decimal());
+            sink.set_speed(state.get_speed_decimal());
+
+            let mut queue = Queue::new(paths, sink);
+            let mut handler = EventHandler::new(state, config, terminal);
+            queue.run(&mut handler);
         }
         None => {
             let paths = match args.load {
@@ -47,9 +47,9 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
                 }
             };
 
-            let selection = Selection::new(paths);
-            let mut handler = EventHandler::new(selection, state, config, terminal);
-            handler.instance.run(&mut handler);
+            let mut selection = Selection::new(paths);
+            let mut handler = EventHandler::new(state, config, terminal);
+            selection.run(&mut handler);
         }
     };
     Ok(())

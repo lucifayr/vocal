@@ -1,6 +1,6 @@
-use std::{thread, time::Duration};
+use std::{fs::File, thread, time::Duration};
 
-use rodio::Source;
+use rodio::{Decoder, Source};
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout},
@@ -24,7 +24,6 @@ pub struct Player {
     state: AudioState,
     interupted: bool,
     source_data: SourceData,
-    path: String,
 }
 
 impl Player {
@@ -39,21 +38,25 @@ impl Player {
         Some(Player {
             source_data,
             state: AudioState::new(duration),
-            path: path.to_owned(),
             interupted: false,
         })
     }
 
-    pub fn start_audio<B: Backend>(path: String, handler: &mut EventHandler<B, Queue>) {
-        if let Some(mut audio) = Player::new(path.as_str()) {
-            match audio.play(handler) {
+    pub fn start_audio<B: Backend>(path: String, handler: &mut EventHandler<B>, queue: &mut Queue) {
+        if let Some(mut audio) = Player::new(&path) {
+            match audio.play(SourceData::get_source(&path).unwrap(), handler, queue) {
                 Ok(_) => {}
                 Err(err) => println!("{err}"),
             };
         };
     }
 
-    pub fn play<B: Backend>(&mut self, handler: &mut EventHandler<B, Queue>) -> Result<(), &str> {
+    pub fn play<B: Backend>(
+        &mut self,
+        source: Decoder<File>,
+        handler: &mut EventHandler<B>,
+        queue: &mut Queue,
+    ) -> Result<(), &str> {
         // handler.trigger(AudioEvent::StartAudio);
         let terminal_size = match handler.get_terminal_size() {
             Ok(size) => size,
@@ -63,13 +66,12 @@ impl Player {
         let keybindings = PlaybackKeybindings::default();
 
         let interval = 16;
-        let source = self.source_data.source;
         let sample_rate = source.sample_rate();
         let step = (sample_rate * interval) as f32 / 1000.0;
 
-        handler.instance.sink.append(source);
+        queue.sink.append(source);
         loop {
-            if handler.instance.interupted {
+            if queue.interupted {
                 // handler.trigger(AudioEvent::EndAudio);
                 return Ok(());
             }
@@ -85,6 +87,12 @@ impl Player {
 
             let start = (progress * self.source_data.samples.len() as f64) as usize;
             let bar_count = (terminal_size.width / 2) as usize;
+
+            let volume = handler.get_state().volume;
+            let speed = handler.get_state().speed;
+            let is_muted = handler.get_state().is_muted;
+            let color = handler.get_config().get_color();
+            let highlight_color = handler.get_config().get_highlight_color();
 
             match handler.terminal.draw(|rect| {
                 let size = rect.size();
@@ -114,38 +122,27 @@ impl Player {
                     multiplier,
                 ) {
                     rect.render_widget(
-                        draw_chart(
-                            data.as_slice(),
-                            max * multiplier as u64,
-                            handler.get_config().get_color(),
-                        ),
+                        draw_chart(data.as_slice(), max * multiplier as u64, color),
                         chunks[0],
                     );
                 }
 
                 rect.render_widget(
                     draw_info(
-                        self.path.as_str(),
-                        handler.get_state().volume,
-                        handler.get_state().is_muted,
-                        handler.get_state().speed,
+                        &self.source_data.path,
+                        volume,
+                        is_muted,
+                        speed,
                         self.state.duration.as_secs_f64(),
                         self.state.passed_time,
-                        handler.get_config().get_highlight_color(),
+                        highlight_color,
                     ),
                     chunks[1],
                 );
-                rect.render_widget(
-                    draw_bar(progress, handler.get_config().get_color()),
-                    chunks[2],
-                );
+                rect.render_widget(draw_bar(progress, color), chunks[2]);
 
                 rect.render_widget(
-                    draw_keys(
-                        keybindings.get_keybindings(),
-                        handler.get_config().get_color(),
-                        handler.get_config().get_highlight_color(),
-                    ),
+                    draw_keys(keybindings.get_keybindings(), color, highlight_color),
                     chunks[3],
                 );
             }) {

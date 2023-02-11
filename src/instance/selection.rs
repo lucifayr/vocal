@@ -25,7 +25,7 @@ pub struct Selection {
 }
 
 impl Instance for Selection {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B, Self>) {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
         handler.clear_terminal().unwrap();
 
         let keybindings = SelectionKeybindings::default();
@@ -37,6 +37,10 @@ impl Instance for Selection {
             .collect();
 
         let interval = 16_u64;
+
+        let color = handler.get_config().get_color();
+        let highlight_color = handler.get_config().get_highlight_color();
+        let audio_directory = handler.get_config().audio_directory.clone();
 
         loop {
             let queue_items: Vec<ListItem> = self
@@ -58,10 +62,7 @@ impl Instance for Selection {
 
                 if items.is_empty() {
                     rect.render_widget(
-                        draw_info_no_audio(
-                            handler.get_config().audio_directory.as_str(),
-                            handler.get_config().get_color(),
-                        ),
+                        draw_info_no_audio(audio_directory.to_owned(), color),
                         rect.size(),
                     );
 
@@ -69,32 +70,18 @@ impl Instance for Selection {
                 }
 
                 rect.render_stateful_widget(
-                    draw_list(
-                        items.clone(),
-                        "Audio",
-                        handler.get_config().get_color(),
-                        handler.get_config().get_highlight_color(),
-                    ),
+                    draw_list(items.clone(), "Audio", color, highlight_color),
                     chunks_horizontal[0],
                     &mut self.state,
                 );
 
                 rect.render_widget(
-                    draw_list(
-                        queue_items.clone(),
-                        "Queue",
-                        handler.get_config().get_color(),
-                        handler.get_config().get_highlight_color(),
-                    ),
+                    draw_list(queue_items.clone(), "Queue", color, highlight_color),
                     chunks_horizontal[1],
                 );
 
                 rect.render_widget(
-                    draw_keys(
-                        keybindings.get_keybindings(),
-                        handler.get_config().get_color(),
-                        handler.get_config().get_highlight_color(),
-                    ),
+                    draw_keys(keybindings.get_keybindings(), color, highlight_color),
                     chunks_vertical[1],
                 );
             }) {

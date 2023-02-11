@@ -1,27 +1,20 @@
 use tui::{backend::Backend, layout::Rect, Terminal};
 
-use crate::{
-    input::config::Config,
-    instance::{queue::Queue, selection::Selection, Instance},
-    state::runtime_state::RuntimeState,
-};
+use crate::{input::config::Config, instance::Instance, state::runtime_state::RuntimeState};
 
-pub trait Event {
-    fn trigger_queue<B: Backend>(&self, handler: &mut EventHandler<B, Queue>);
-    fn trigger_selection<B: Backend>(&self, handler: &mut EventHandler<B, Selection>);
+pub trait Event<I: Instance> {
+    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut I);
 }
 
-pub struct EventHandler<B: Backend, I: Instance> {
-    pub instance: I,
+pub struct EventHandler<B: Backend> {
     pub state: RuntimeState,
     config: Config,
     pub terminal: Terminal<B>,
 }
 
-impl<B: Backend, I: Instance> EventHandler<B, I> {
-    pub fn new(instance: I, state: RuntimeState, config: Config, terminal: Terminal<B>) -> Self {
+impl<B: Backend> EventHandler<B> {
+    pub fn new(state: RuntimeState, config: Config, terminal: Terminal<B>) -> Self {
         EventHandler {
-            instance,
             state,
             config,
             terminal,
@@ -45,16 +38,11 @@ impl<B: Backend, I: Instance> EventHandler<B, I> {
     }
 }
 
-impl<B: Backend> EventHandler<B, Queue> {
-    pub fn trigger<E: Event>(&mut self, event: E) {
-        // do logging
-        event.trigger_queue(self);
-    }
-}
-
-impl<B: Backend> EventHandler<B, Selection> {
-    pub fn trigger<E: Event>(&mut self, event: E) {
-        // do logging
-        event.trigger_selection(self);
-    }
+pub fn trigger<B: Backend, I: Instance, E: Event<I>>(
+    event: E,
+    handler: &mut EventHandler<B>,
+    instance: &mut I,
+) {
+    // do logging
+    event.trigger(handler, instance);
 }
