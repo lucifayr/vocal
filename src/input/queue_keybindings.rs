@@ -1,6 +1,6 @@
-use std::time::Duration;
 
-use crossterm::event::{poll, read, Event, KeyCode};
+
+use crossterm::event::{KeyCode};
 use tui::backend::Backend;
 
 use crate::{
@@ -50,9 +50,9 @@ pub fn process_queue_input<B: Backend>(
 
     match code {
         QUIT_KEY => trigger(UniversalEvent::QuitProgram, handler, instance),
-        STOP_KEY => trigger(QueueEvent::StopQueue, handler, instance),
-        LOOP_KEY => trigger(QueueEvent::LoopQueue, handler, instance),
-        STOP_LOOP_KEY => trigger(QueueEvent::StopLoopQueue, handler, instance),
+        STOP_KEY => trigger(QueueEvent::Stop, handler, instance),
+        LOOP_KEY => trigger(QueueEvent::Loop, handler, instance),
+        STOP_LOOP_KEY => trigger(QueueEvent::StopLoop, handler, instance),
         _ => {}
     }
 }

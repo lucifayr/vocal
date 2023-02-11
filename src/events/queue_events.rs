@@ -5,11 +5,11 @@ use crate::instance::queue::Queue;
 use super::handler::{Event, EventHandler};
 
 pub enum QueueEvent {
-    StartQueue,
-    EndQueue,
-    StopQueue,
-    LoopQueue,
-    StopLoopQueue,
+    Start,
+    End,
+    Stop,
+    Loop,
+    StopLoop,
 }
 
 trait QueueActions {
@@ -36,11 +36,11 @@ impl<B: Backend> QueueActions for EventHandler<B> {
 impl Event<Queue> for QueueEvent {
     fn trigger<B: Backend>(&self, _handler: &mut EventHandler<B>, instance: &mut Queue) {
         match self {
-            QueueEvent::StartQueue => {}
-            QueueEvent::EndQueue => {}
-            QueueEvent::StopQueue => EventHandler::<B>::stop_queue(instance),
-            QueueEvent::LoopQueue => EventHandler::<B>::loop_queue(instance),
-            QueueEvent::StopLoopQueue => EventHandler::<B>::stop_loop_queue(instance),
+            QueueEvent::Start => {}
+            QueueEvent::End => {}
+            QueueEvent::Stop => EventHandler::<B>::stop_queue(instance),
+            QueueEvent::Loop => EventHandler::<B>::loop_queue(instance),
+            QueueEvent::StopLoop => EventHandler::<B>::stop_loop_queue(instance),
         }
     }
 }

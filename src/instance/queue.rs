@@ -31,7 +31,7 @@ impl<I: Instance> InstanceRunable<I> for Queue {
 
             for path in self.queue.clone().iter() {
                 if self.interupted {
-                    trigger(QueueEvent::EndQueue, handler, self);
+                    trigger(QueueEvent::End, handler, self);
                     return;
                 }
 
@@ -46,7 +46,7 @@ impl<I: Instance> InstanceRunable<I> for Queue {
             }
         }
 
-        trigger(QueueEvent::EndQueue, handler, self);
+        trigger(QueueEvent::End, handler, self);
     }
 }
 

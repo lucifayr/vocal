@@ -29,7 +29,7 @@ impl SourceData {
 
         match Decoder::new(file) {
             Ok(source) => Some(source),
-            Err(_) => return None,
+            Err(_) => None,
         }
     }
 }

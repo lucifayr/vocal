@@ -1,6 +1,6 @@
-use std::time::Duration;
 
-use crossterm::event::{poll, read, Event, KeyCode};
+
+use crossterm::event::{KeyCode};
 use tui::backend::Backend;
 
 use crate::{
