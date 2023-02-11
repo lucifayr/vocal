@@ -118,7 +118,7 @@ Log files have the following naming schema: `{prefix}_{date}_{time}.log}`.
 
 ##### Default Value
 ```toml
-log_directory = '$HOME/vocal/logs'
+log_file_prefix = 'vocal'
 ```
 
 ### starting_volume

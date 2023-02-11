@@ -31,8 +31,8 @@ pub fn clean_log_dir(dir: &str) -> Result<(), std::io::Error> {
     if files.len() >= 10 {
         files.sort_by(|a, b| b.1.cmp(&a.1));
 
-        for i in 9..files.len() {
-            let del_path = &files[i].0;
+        for file in files.iter().skip(9) {
+            let del_path = &file.0;
             remove_file(del_path)?;
         }
     }

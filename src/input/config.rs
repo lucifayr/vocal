@@ -30,7 +30,7 @@ impl std::default::Default for Config {
             highlight_color: "magenta".to_owned(),
             audio_directory: format!("{home_directory}/vocal/audio"),
             log_directory: format!("{home_directory}/vocal/logs"),
-            log_file_prefix: format!("vocal"),
+            log_file_prefix: "vocal".to_owned(),
             starting_volume: 50,
             starting_speed: 100,
         }
