@@ -4,23 +4,22 @@ use crate::instance::queue::Queue;
 
 use super::handler::{Event, EventHandler};
 
+#[allow(dead_code)]
 pub enum QueueEvent {
     Start,
-    End,
     Stop,
     Loop,
     StopLoop,
 }
 
 trait QueueActions {
-    fn stop_queue(instance: &mut Queue);
+    fn stop_queue(&mut self, instance: &mut Queue);
     fn loop_queue(instance: &mut Queue);
     fn stop_loop_queue(instance: &mut Queue);
 }
 
 impl<B: Backend> QueueActions for EventHandler<B> {
-    fn stop_queue(instance: &mut Queue) {
-        // instance.sink.stop();
+    fn stop_queue(&mut self, instance: &mut Queue) {
         instance.interupted = true;
     }
 
@@ -34,11 +33,10 @@ impl<B: Backend> QueueActions for EventHandler<B> {
 }
 
 impl Event<Queue> for QueueEvent {
-    fn trigger<B: Backend>(&self, _handler: &mut EventHandler<B>, instance: &mut Queue) {
+    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Queue) {
         match self {
             QueueEvent::Start => {}
-            QueueEvent::End => {}
-            QueueEvent::Stop => EventHandler::<B>::stop_queue(instance),
+            QueueEvent::Stop => handler.stop_queue(instance),
             QueueEvent::Loop => EventHandler::<B>::loop_queue(instance),
             QueueEvent::StopLoop => EventHandler::<B>::stop_loop_queue(instance),
         }

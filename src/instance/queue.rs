@@ -2,7 +2,6 @@ use crossterm::event::KeyCode;
 use tui::backend::Backend;
 
 use crate::{
-    audio::player::Player,
     events::{
         handler::{trigger, EventHandler},
         queue_events::QueueEvent,
@@ -13,7 +12,7 @@ use crate::{
     },
 };
 
-use super::{Instance, InstanceRunable, InstanceRunableWithParent};
+use super::{player::Player, Instance, InstanceRunable, InstanceRunableWithParent};
 
 pub struct Queue {
     pub queue: Vec<String>,
@@ -27,11 +26,8 @@ impl InstanceRunable for Queue {
 
         let mut looping = true;
         while looping {
-            looping = self.looping;
-
             for path in self.queue.clone().iter() {
                 if self.interupted {
-                    trigger(QueueEvent::End, handler, self);
                     return;
                 }
 
@@ -44,9 +40,11 @@ impl InstanceRunable for Queue {
 
                 player.run(handler, self);
             }
+
+            looping = self.looping;
         }
 
-        trigger(QueueEvent::End, handler, self);
+        trigger(QueueEvent::Stop, handler, self);
     }
 }
 

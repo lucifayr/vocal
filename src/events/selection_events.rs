@@ -1,6 +1,6 @@
 use tui::backend::Backend;
 
-use crate::instance::selection::Selection;
+use crate::instance::{queue::Queue, selection::Selection, InstanceRunable};
 
 use super::handler::{Event, EventHandler};
 
@@ -16,6 +16,7 @@ pub enum SelectionEvent {
 }
 
 trait SelectionActions {
+    fn play_queue(&mut self, instance: &mut Selection);
     fn move_up(instance: &mut Selection);
     fn move_down(instance: &mut Selection);
     fn move_to_top(instance: &mut Selection);
@@ -26,6 +27,11 @@ trait SelectionActions {
 }
 
 impl<B: Backend> SelectionActions for EventHandler<B> {
+    fn play_queue(&mut self, instance: &mut Selection) {
+        let mut queue = Queue::new(instance.queue.clone());
+        queue.run(self);
+    }
+
     fn move_up(instance: &mut Selection) {
         if let Some(selected) = instance.state.selected() {
             let amount = instance.content.len();
@@ -88,14 +94,9 @@ impl<B: Backend> SelectionActions for EventHandler<B> {
 }
 
 impl Event<Selection> for SelectionEvent {
-    fn trigger<B: Backend>(&self, _handler: &mut EventHandler<B>, instance: &mut Selection) {
+    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Selection) {
         match self {
-            SelectionEvent::PlayQueue => {
-                // let (sink, _stream) = init_audio_handler().unwrap();
-                // let queue = Queue::new(handler.instance.queue, sink);
-                // handler.instance = queue;
-                // handler.instance.run(*handler);
-            }
+            SelectionEvent::PlayQueue => handler.play_queue(instance),
             SelectionEvent::MoveUp => EventHandler::<B>::move_up(instance),
             SelectionEvent::MoveDown => EventHandler::<B>::move_down(instance),
             SelectionEvent::MoveToTop => EventHandler::<B>::move_to_top(instance),

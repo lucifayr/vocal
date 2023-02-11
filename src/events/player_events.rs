@@ -2,13 +2,13 @@ use std::time::Instant;
 
 use tui::backend::Backend;
 
-use crate::audio::player::Player;
+use crate::instance::player::Player;
 
 use super::handler::{Event, EventHandler};
 
-pub enum AudioEvent {
+pub enum PlayerEvent {
     Start,
-    End,
+    Stop,
     Pause,
     Mute,
     ResetSpeed,
@@ -20,7 +20,8 @@ pub enum AudioEvent {
     ResetTick,
 }
 
-trait AudioActions {
+trait PlayerActions {
+    fn stop(instance: &mut Player);
     fn pause(instance: &mut Player);
     fn mute(&mut self, instance: &mut Player);
     fn reset_speed(&mut self, instance: &mut Player);
@@ -32,7 +33,11 @@ trait AudioActions {
     fn reset_tick(instance: &mut Player);
 }
 
-impl<B: Backend> AudioActions for EventHandler<B> {
+impl<B: Backend> PlayerActions for EventHandler<B> {
+    fn stop(instance: &mut Player) {
+        instance.sink.stop();
+    }
+
     fn pause(instance: &mut Player) {
         instance.state.is_paused = !instance.state.is_paused;
         if instance.state.is_paused {
@@ -44,13 +49,13 @@ impl<B: Backend> AudioActions for EventHandler<B> {
 
     fn mute(&mut self, instance: &mut Player) {
         if !self.state.is_muted {
-            instance.sink.set_volume(0.0);
             self.state.is_muted = true;
+            instance.sink.set_volume(0.0);
         } else {
+            self.state.is_muted = false;
             instance
                 .sink
                 .set_volume(self.get_state().get_volume_decimal());
-            self.state.is_muted = false;
         }
     }
 
@@ -125,22 +130,22 @@ impl<B: Backend> AudioActions for EventHandler<B> {
     }
 }
 
-impl Event<Player> for AudioEvent {
+impl Event<Player> for PlayerEvent {
     fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Player) {
         match self {
-            AudioEvent::Start => {}
-            AudioEvent::End => {}
-            AudioEvent::Pause => EventHandler::<B>::pause(instance),
-            AudioEvent::Mute => handler.mute(instance),
-            AudioEvent::ResetSpeed => handler.reset_speed(instance),
-            AudioEvent::VolumeUp => handler.volume_up(instance),
-            AudioEvent::VolumeDown => handler.volume_down(instance),
-            AudioEvent::SpeedUp => handler.speed_up(instance),
-            AudioEvent::SpeedDown => handler.speed_down(instance),
-            AudioEvent::Tick => {
+            PlayerEvent::Start => {}
+            PlayerEvent::Stop => EventHandler::<B>::stop(instance),
+            PlayerEvent::Pause => EventHandler::<B>::pause(instance),
+            PlayerEvent::Mute => handler.mute(instance),
+            PlayerEvent::ResetSpeed => handler.reset_speed(instance),
+            PlayerEvent::VolumeUp => handler.volume_up(instance),
+            PlayerEvent::VolumeDown => handler.volume_down(instance),
+            PlayerEvent::SpeedUp => handler.speed_up(instance),
+            PlayerEvent::SpeedDown => handler.speed_down(instance),
+            PlayerEvent::Tick => {
                 EventHandler::<B>::tick(instance, handler.get_state().get_speed_decimal() as f64)
             }
-            AudioEvent::ResetTick => EventHandler::<B>::reset_tick(instance),
+            PlayerEvent::ResetTick => EventHandler::<B>::reset_tick(instance),
         }
     }
 }

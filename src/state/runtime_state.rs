@@ -14,7 +14,11 @@ impl RuntimeState {
     }
 
     pub fn get_volume_decimal(&self) -> f32 {
-        self.volume as f32 / 100_f32
+        if self.is_muted {
+            0.0
+        } else {
+            self.volume as f32 / 100_f32
+        }
     }
 
     pub fn get_speed_decimal(&self) -> f32 {

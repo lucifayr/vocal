@@ -3,6 +3,7 @@ use tui::backend::Backend;
 
 use crate::{events::handler::EventHandler, input::key::Key};
 
+pub mod player;
 pub mod queue;
 pub mod selection;
 

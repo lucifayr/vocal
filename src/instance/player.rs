@@ -8,11 +8,10 @@ use tui::{
 };
 
 use crate::{
-    audio::source_data::SourceData,
+    audio::{init::init_audio_handler, source_data::SourceData},
     events::{
-        audio_events::AudioEvent,
+        player_events::PlayerEvent,
         handler::{trigger, EventHandler},
-        queue_events::QueueEvent,
     },
     input::{
         key::{poll_key, Key},
@@ -28,8 +27,6 @@ use crate::{
     state::audio_state::AudioState,
 };
 
-use super::init::init_audio_handler;
-
 pub struct Player {
     pub sink: Sink,
     // ====================================================================================================
@@ -43,7 +40,7 @@ pub struct Player {
 
 impl InstanceRunableWithParent<Queue> for Player {
     fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: &mut Queue) {
-        trigger(AudioEvent::Start, handler, self);
+        trigger(PlayerEvent::Start, handler, self);
         let terminal_size = handler.get_terminal_size().unwrap();
 
         let source = SourceData::get_source(&self.source_data.path).unwrap();
@@ -53,17 +50,16 @@ impl InstanceRunableWithParent<Queue> for Player {
 
         self.sink.append(source);
         loop {
-            trigger(AudioEvent::Tick, handler, self);
+            trigger(PlayerEvent::Tick, handler, self);
 
             if parent.interupted {
-                trigger(AudioEvent::End, handler, self);
-                trigger(QueueEvent::End, handler, parent);
+                trigger(PlayerEvent::Stop, handler, self);
                 return;
             }
 
             let progress = self.state.progress;
             if progress > 1.0 {
-                trigger(AudioEvent::End, handler, self);
+                trigger(PlayerEvent::Stop, handler, self);
                 return;
             }
 
@@ -142,7 +138,7 @@ impl InstanceRunableWithParent<Queue> for Player {
                 if !self.state.is_paused {
                     break;
                 } else {
-                    trigger(AudioEvent::ResetTick, handler, self);
+                    trigger(PlayerEvent::ResetTick, handler, self);
                 }
             }
             thread::sleep(Duration::from_millis(interval.into()));
