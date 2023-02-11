@@ -1,6 +1,6 @@
-use std::{fs::File, thread, time::Duration};
+use std::{thread, time::Duration};
 
-use rodio::{Decoder, Source};
+use rodio::Source;
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout},
@@ -8,27 +8,27 @@ use tui::{
 
 use crate::{
     audio::source_data::SourceData,
-    events::{audio_events::AudioEvent, handler::EventHandler},
+    events::handler::EventHandler,
     input::playback_keybindings::PlaybackKeybindings,
-    properties::audio_properties::AudioOptions,
+    instance::queue::Queue,
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
         info::draw_info,
         keybindings::draw_keys,
     },
+    state::audio_state::AudioState,
 };
 
-#[derive(Debug, Clone)]
-pub struct AudioInstance {
-    pub audio_options: AudioOptions,
-    pub interupted: bool,
+pub struct Player {
+    state: AudioState,
+    interupted: bool,
     source_data: SourceData,
     path: String,
 }
 
-impl AudioInstance {
-    pub fn new(path: &str) -> Option<AudioInstance> {
+impl Player {
+    pub fn new(path: &str) -> Option<Player> {
         let source_data = match SourceData::new(path) {
             Some(source_data) => source_data,
             None => return None,
@@ -36,35 +36,26 @@ impl AudioInstance {
 
         let duration = source_data.duration;
 
-        Some(AudioInstance {
+        Some(Player {
             source_data,
-            audio_options: AudioOptions::new(duration),
+            state: AudioState::new(duration),
             path: path.to_owned(),
             interupted: false,
         })
     }
 
-    pub fn start_instance<B: Backend>(path: String, handler: &mut EventHandler<B>) {
-        if let Some(instance) = AudioInstance::new(path.as_str()) {
-            let source = match SourceData::get_source(path.as_str()) {
-                Some(source) => source,
-                None => return,
-            };
-
-            handler.audio_instance = Some(instance);
-            match AudioInstance::play_audio(source, handler) {
+    pub fn start_audio<B: Backend>(path: String, handler: &mut EventHandler<B, Queue>) {
+        if let Some(mut audio) = Player::new(path.as_str()) {
+            match audio.play(handler) {
                 Ok(_) => {}
                 Err(err) => println!("{err}"),
             };
         };
     }
 
-    pub fn play_audio<B: Backend>(
-        source: Decoder<File>,
-        handler: &mut EventHandler<B>,
-    ) -> Result<(), &str> {
-        handler.trigger(AudioEvent::StartAudio);
-        let terminal_size = match handler.terminal.size() {
+    pub fn play<B: Backend>(&mut self, handler: &mut EventHandler<B, Queue>) -> Result<(), &str> {
+        // handler.trigger(AudioEvent::StartAudio);
+        let terminal_size = match handler.get_terminal_size() {
             Ok(size) => size,
             Err(_) => return Err("Failed to get terminal size"),
         };
@@ -72,34 +63,27 @@ impl AudioInstance {
         let keybindings = PlaybackKeybindings::default();
 
         let interval = 16;
+        let source = self.source_data.source;
         let sample_rate = source.sample_rate();
         let step = (sample_rate * interval) as f32 / 1000.0;
 
-        handler.sink.append(source);
+        handler.instance.sink.append(source);
         loop {
-            if let Some(instance) = handler.queue_instance.as_ref() {
-                if instance.interupted {
-                    handler.trigger(AudioEvent::EndAudio);
-                    return Ok(());
-                }
-            }
-
-            handler.trigger(AudioEvent::Tick);
-
-            let instance = handler
-                .audio_instance
-                .as_ref()
-                .expect("Audio instance should exist")
-                .clone();
-
-            let progress = instance.audio_options.progress;
-
-            if progress > 1.0 {
-                handler.trigger(AudioEvent::EndAudio);
+            if handler.instance.interupted {
+                // handler.trigger(AudioEvent::EndAudio);
                 return Ok(());
             }
 
-            let start = (progress * instance.source_data.samples.len() as f64) as usize;
+            // handler.trigger(AudioEvent::Tick);
+
+            let progress = self.state.progress;
+
+            if progress > 1.0 {
+                // handler.trigger(AudioEvent::EndAudio);
+                return Ok(());
+            }
+
+            let start = (progress * self.source_data.samples.len() as f64) as usize;
             let bar_count = (terminal_size.width / 2) as usize;
 
             match handler.terminal.draw(|rect| {
@@ -122,7 +106,7 @@ impl AudioInstance {
                 let multiplier = 100_f32;
 
                 if let Some(data) = create_data_from_samples(
-                    instance.source_data.samples.clone(),
+                    self.source_data.samples.clone(),
                     start,
                     step as usize,
                     bar_count,
@@ -133,7 +117,7 @@ impl AudioInstance {
                         draw_chart(
                             data.as_slice(),
                             max * multiplier as u64,
-                            handler.config.get_color(),
+                            handler.get_config().get_color(),
                         ),
                         chunks[0],
                     );
@@ -141,23 +125,26 @@ impl AudioInstance {
 
                 rect.render_widget(
                     draw_info(
-                        instance.path.as_str(),
-                        handler.runtime_options.volume,
-                        handler.runtime_options.is_muted,
-                        handler.runtime_options.speed,
-                        instance.audio_options.duration.as_secs_f64(),
-                        instance.audio_options.passed_time,
-                        handler.config.get_highlight_color(),
+                        self.path.as_str(),
+                        handler.get_state().volume,
+                        handler.get_state().is_muted,
+                        handler.get_state().speed,
+                        self.state.duration.as_secs_f64(),
+                        self.state.passed_time,
+                        handler.get_config().get_highlight_color(),
                     ),
                     chunks[1],
                 );
-                rect.render_widget(draw_bar(progress, handler.config.get_color()), chunks[2]);
+                rect.render_widget(
+                    draw_bar(progress, handler.get_config().get_color()),
+                    chunks[2],
+                );
 
                 rect.render_widget(
                     draw_keys(
                         keybindings.get_keybindings(),
-                        handler.config.get_color(),
-                        handler.config.get_highlight_color(),
+                        handler.get_config().get_color(),
+                        handler.get_config().get_highlight_color(),
                     ),
                     chunks[3],
                 );
@@ -169,17 +156,11 @@ impl AudioInstance {
             }
 
             loop {
-                keybindings.pull_input(handler);
-                if !handler
-                    .audio_instance
-                    .as_ref()
-                    .expect("Audio instance should exist")
-                    .audio_options
-                    .is_paused
-                {
+                // keybindings.pull_input(handler);
+                if !self.state.is_paused {
                     break;
                 } else {
-                    handler.trigger(AudioEvent::ResetTick);
+                    // handler.trigger(AudioEvent::ResetTick);
                 }
             }
             thread::sleep(Duration::from_millis(interval.into()));

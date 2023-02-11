@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone, Copy)]
-pub struct AudioOptions {
+pub struct AudioState {
     pub is_paused: bool,
     pub duration: Duration,
     pub time_since_last_tick: Instant,
@@ -9,9 +9,9 @@ pub struct AudioOptions {
     pub progress: f64,
 }
 
-impl AudioOptions {
-    pub fn new(duration: Duration) -> AudioOptions {
-        AudioOptions {
+impl AudioState {
+    pub fn new(duration: Duration) -> AudioState {
+        AudioState {
             is_paused: false,
             duration,
             time_since_last_tick: Instant::now(),

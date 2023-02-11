@@ -9,9 +9,9 @@ mod audio;
 mod events;
 mod input;
 mod instance;
-mod properties;
 mod render;
 mod run;
+mod state;
 
 fn main() -> Result<(), &'static str> {
     let config = match confy::load("vocal", "config") {

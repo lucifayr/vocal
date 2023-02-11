@@ -4,8 +4,7 @@ use crossterm::event::{poll, read, Event, KeyCode};
 use tui::backend::Backend;
 
 use crate::events::{
-    audio_events::AudioEvent, handler::EventHandler, queue_events::QueueEvent,
-    universal_events::UniversalEvent,
+    handler::EventHandler, queue_events::QueueEvent, universal_events::UniversalEvent,
 };
 
 use super::key::Key;
@@ -64,33 +63,33 @@ impl PlaybackKeybindings {
         ]
     }
 
-    pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B>) {
-        if poll(Duration::from_millis(1)).unwrap_or(false) {
-            if let Ok(Event::Key(key_event)) = read() {
-                if key_event.code == KeyCode::Char(self.quit.key()) {
-                    handler.trigger(UniversalEvent::QuitProgram)
-                } else if key_event.code == KeyCode::Char(self.pause.key()) {
-                    handler.trigger(AudioEvent::PauseAudio)
-                } else if key_event.code == KeyCode::Char(self.mute.key()) {
-                    handler.trigger(AudioEvent::MuteAudio)
-                } else if key_event.code == KeyCode::Char(self.reset_speed.key()) {
-                    handler.trigger(AudioEvent::ResetSpeed)
-                } else if key_event.code == KeyCode::Char(self.volume_up.key()) {
-                    handler.trigger(AudioEvent::VolumeUp)
-                } else if key_event.code == KeyCode::Char(self.volume_down.key()) {
-                    handler.trigger(AudioEvent::VolumeDown)
-                } else if key_event.code == KeyCode::Char(self.speed_up.key()) {
-                    handler.trigger(AudioEvent::SpeedUp)
-                } else if key_event.code == KeyCode::Char(self.speed_down.key()) {
-                    handler.trigger(AudioEvent::SpeedDown)
-                } else if key_event.code == KeyCode::Char(self.stop_queue.key()) {
-                    handler.trigger(QueueEvent::StopQueue)
-                } else if key_event.code == KeyCode::Char(self.loop_queue.key()) {
-                    handler.trigger(QueueEvent::LoopQueue)
-                } else if key_event.code == KeyCode::Char(self.stop_loop_queue.key()) {
-                    handler.trigger(QueueEvent::StopLoopQueue)
-                }
-            }
-        }
-    }
+    // pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B>) {
+    //     if poll(Duration::from_millis(1)).unwrap_or(false) {
+    //         if let Ok(Event::Key(key_event)) = read() {
+    //             if key_event.code == KeyCode::Char(self.quit.key()) {
+    //                 handler.trigger(UniversalEvent::QuitProgram)
+    //             } else if key_event.code == KeyCode::Char(self.pause.key()) {
+    //                 handler.trigger(AudioEvent::PauseAudio)
+    //             } else if key_event.code == KeyCode::Char(self.mute.key()) {
+    //                 handler.trigger(AudioEvent::MuteAudio)
+    //             } else if key_event.code == KeyCode::Char(self.reset_speed.key()) {
+    //                 handler.trigger(AudioEvent::ResetSpeed)
+    //             } else if key_event.code == KeyCode::Char(self.volume_up.key()) {
+    //                 handler.trigger(AudioEvent::VolumeUp)
+    //             } else if key_event.code == KeyCode::Char(self.volume_down.key()) {
+    //                 handler.trigger(AudioEvent::VolumeDown)
+    //             } else if key_event.code == KeyCode::Char(self.speed_up.key()) {
+    //                 handler.trigger(AudioEvent::SpeedUp)
+    //             } else if key_event.code == KeyCode::Char(self.speed_down.key()) {
+    //                 handler.trigger(AudioEvent::SpeedDown)
+    //             } else if key_event.code == KeyCode::Char(self.stop_queue.key()) {
+    //                 handler.trigger(QueueEvent::StopQueue)
+    //             } else if key_event.code == KeyCode::Char(self.loop_queue.key()) {
+    //                 handler.trigger(QueueEvent::LoopQueue)
+    //             } else if key_event.code == KeyCode::Char(self.stop_loop_queue.key()) {
+    //                 handler.trigger(QueueEvent::StopLoopQueue)
+    //             }
+    //         }
+    //     }
+    // }
 }

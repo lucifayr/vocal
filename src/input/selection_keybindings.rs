@@ -3,8 +3,11 @@ use std::time::Duration;
 use crossterm::event::{poll, read, Event, KeyCode};
 use tui::backend::Backend;
 
-use crate::events::{
-    handler::EventHandler, selection_events::SelectionEvent, universal_events::UniversalEvent,
+use crate::{
+    events::{
+        handler::EventHandler, selection_events::SelectionEvent, universal_events::UniversalEvent,
+    },
+    instance::selection::Selection,
 };
 
 use super::key::Key;
@@ -52,7 +55,7 @@ impl SelectionKeybindings {
         ]
     }
 
-    pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B>) {
+    pub fn pull_input<B: Backend>(&self, handler: &mut EventHandler<B, Selection>) {
         if poll(Duration::from_millis(1)).unwrap_or(false) {
             if let Ok(Event::Key(key_event)) = read() {
                 if key_event.code == KeyCode::Char(self.quit.key()) {

@@ -1,48 +1,60 @@
-use rodio::Sink;
-use tui::{backend::Backend, Terminal};
+use tui::{backend::Backend, layout::Rect, Terminal};
 
 use crate::{
     input::config::Config,
-    instance::{
-        audio_instance::AudioInstance, queue_instance::QueueInstance,
-        selection_instace::SelectionInstance,
-    },
-    properties::runtime_properties::RuntimeOptions,
+    instance::{queue::Queue, selection::Selection, Instance},
+    state::runtime_state::RuntimeState,
 };
 
 pub trait Event {
-    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>);
+    fn trigger_queue<B: Backend>(&self, handler: &mut EventHandler<B, Queue>);
+    fn trigger_selection<B: Backend>(&self, handler: &mut EventHandler<B, Selection>);
 }
 
-pub struct EventHandler<B: Backend> {
-    pub runtime_options: RuntimeOptions,
-    pub sink: Sink,
-    pub config: Config,
+pub struct EventHandler<B: Backend, I: Instance> {
+    pub instance: I,
+    pub state: RuntimeState,
+    config: Config,
     pub terminal: Terminal<B>,
-    pub audio_instance: Option<AudioInstance>,
-    pub selection_instance: Option<SelectionInstance>,
-    pub queue_instance: Option<QueueInstance>,
 }
 
-impl<B: Backend> EventHandler<B> {
-    pub fn new(
-        sink: Sink,
-        runtime_options: RuntimeOptions,
-        config: Config,
-        terminal: Terminal<B>,
-    ) -> Self {
+impl<B: Backend, I: Instance> EventHandler<B, I> {
+    pub fn new(instance: I, state: RuntimeState, config: Config, terminal: Terminal<B>) -> Self {
         EventHandler {
-            sink,
-            audio_instance: None,
-            selection_instance: None,
-            queue_instance: None,
-            runtime_options,
+            instance,
+            state,
             config,
             terminal,
         }
     }
 
+    pub fn get_config(&self) -> &Config {
+        &self.config
+    }
+
+    pub fn get_state(&self) -> &RuntimeState {
+        &self.state
+    }
+
+    pub fn clear_terminal(&mut self) -> Result<(), std::io::Error> {
+        self.terminal.clear()
+    }
+
+    pub fn get_terminal_size(&self) -> Result<Rect, std::io::Error> {
+        self.terminal.size()
+    }
+}
+
+impl<B: Backend> EventHandler<B, Queue> {
     pub fn trigger<E: Event>(&mut self, event: E) {
-        event.trigger(self);
+        // do logging
+        event.trigger_queue(self);
+    }
+}
+
+impl<B: Backend> EventHandler<B, Selection> {
+    pub fn trigger<E: Event>(&mut self, event: E) {
+        // do logging
+        event.trigger_selection(self);
     }
 }
