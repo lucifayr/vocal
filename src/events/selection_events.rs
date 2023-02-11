@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use tui::backend::Backend;
 
 use crate::{
@@ -18,6 +20,28 @@ pub enum SelectionEvent {
     RemoveFromQueue,
 }
 
+impl Display for SelectionEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            SelectionEvent::PlayQueue => "-SELECTION- A queue has been started",
+            SelectionEvent::MoveUp => "-SELECTION- The cursor has moved up",
+            SelectionEvent::MoveDown => "-SELECTION- The cursor has moved down",
+            SelectionEvent::MoveToTop => "-SELECTION- The cursor has moved to the top",
+            SelectionEvent::MoveToBottom => "-SELECTION- The cursor has moved to the bottom",
+            SelectionEvent::AddToTopOfQueue => {
+                "-SELECTION- An item has been added to the top of the queue"
+            }
+            SelectionEvent::AddToBottomOfQueue => {
+                "-SELECTION- An item has been added to the bottom of the queue"
+            }
+            SelectionEvent::RemoveFromQueue => {
+                "-SELECTION- An item has been removed from the queue"
+            }
+        };
+
+        write!(f, "{msg}")
+    }
+}
 trait SelectionActions {
     fn play_queue(&mut self, instance: &mut Selection);
     fn move_up(instance: &mut Selection);

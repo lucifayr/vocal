@@ -1,0 +1,41 @@
+use chrono::Local;
+use std::fs::{create_dir_all, metadata, read_dir, remove_file, File};
+
+pub fn create_log_file(dir: &str, prefix: &str) -> Result<File, std::io::Error> {
+    clean_log_dir(dir)?;
+
+    let date_str = Local::now().format("%Y-%m-%d_%H:%M:%S");
+    match File::create(format!("{dir}/{prefix}_{date_str}.log",)) {
+        Ok(file) => Ok(file),
+        Err(_) => {
+            create_dir_all(dir).unwrap();
+            File::create(format!("{dir}/{prefix}_{date_str}.log"))
+        }
+    }
+}
+
+pub fn clean_log_dir(dir: &str) -> Result<(), std::io::Error> {
+    let entries = read_dir(dir)?;
+
+    let mut files = Vec::new();
+    for entry in entries {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if path.is_file() {
+            let metadata = metadata(&path).unwrap();
+            let modified_time = metadata.modified().unwrap();
+            files.push((path, modified_time));
+        }
+    }
+
+    if files.len() >= 10 {
+        files.sort_by(|a, b| b.1.cmp(&a.1));
+
+        for i in 9..files.len() {
+            let del_path = &files[i].0;
+            remove_file(del_path)?;
+        }
+    }
+
+    Ok(())
+}

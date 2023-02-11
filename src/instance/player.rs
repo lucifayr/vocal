@@ -1,4 +1,7 @@
-use std::{thread, time::Duration};
+use std::{
+    thread,
+    time::{Duration, Instant},
+};
 
 use crossterm::event::KeyCode;
 use rodio::{OutputStream, Sink, Source};
@@ -47,7 +50,7 @@ impl InstanceRunableWithParent<Queue> for Player {
 
         self.sink.append(source);
         loop {
-            trigger(PlayerEvent::Tick, handler, self);
+            self.tick(handler.get_state().get_speed_decimal().into());
 
             if parent.interupted {
                 trigger(PlayerEvent::Stop, handler, self);
@@ -135,7 +138,7 @@ impl InstanceRunableWithParent<Queue> for Player {
                 if !self.state.is_paused {
                     break;
                 } else {
-                    trigger(PlayerEvent::ResetTick, handler, self);
+                    self.reset_tick();
                 }
             }
             thread::sleep(Duration::from_millis(interval.into()));
@@ -176,5 +179,16 @@ impl Player {
             source_data,
             state: AudioState::new(duration),
         })
+    }
+
+    fn tick(&mut self, speed: f64) {
+        self.state.passed_time += self.state.time_since_last_tick.elapsed().as_secs_f64() * speed;
+        self.state.time_since_last_tick = Instant::now();
+
+        self.state.progress = self.state.passed_time / self.state.duration.as_secs_f64();
+    }
+
+    fn reset_tick(&mut self) {
+        self.state.time_since_last_tick = Instant::now();
     }
 }

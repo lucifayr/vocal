@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use tui::backend::Backend;
 
 use crate::{instance::queue::Queue, state::handler::StateHandler};
@@ -10,6 +12,19 @@ pub enum QueueEvent {
     Stop,
     Loop,
     StopLoop,
+}
+
+impl Display for QueueEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            QueueEvent::Start => "-QUEUE- Queue has started",
+            QueueEvent::Stop => "-QUEUE- Queue has stopped",
+            QueueEvent::Loop => "-QUEUE- looping enabled",
+            QueueEvent::StopLoop => "-QUEUE- looping disabled",
+        };
+
+        write!(f, "{msg}")
+    }
 }
 
 trait QueueActions {

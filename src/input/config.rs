@@ -12,6 +12,8 @@ pub struct Config {
     pub color: String,
     pub highlight_color: String,
     pub audio_directory: String,
+    pub log_directory: String,
+    pub log_file_prefix: String,
     pub starting_volume: u8,
     pub starting_speed: u8,
 }
@@ -26,7 +28,9 @@ impl std::default::Default for Config {
         Self {
             color: "blue".to_owned(),
             highlight_color: "magenta".to_owned(),
-            audio_directory: format!("{home_directory}/vocal"),
+            audio_directory: format!("{home_directory}/vocal/audio"),
+            log_directory: format!("{home_directory}/vocal/logs"),
+            log_file_prefix: format!("vocal"),
             starting_volume: 50,
             starting_speed: 100,
         }

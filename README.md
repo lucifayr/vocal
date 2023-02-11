@@ -24,6 +24,8 @@ make install
 - [color](#color)
 - [highlight_color](#highlight_color)
 - [audio_directory](#audio_directory)
+- [log_directory](#log_directory)
+- [log_file_prefix](#log_file_prefix)
 - [starting_volume](#starting_volume)
 - [starting_speed](#starting_speed)
 
@@ -94,7 +96,29 @@ All files in this directory are listed and can be selected to be played.
 
 ##### Default Value
 ```toml
-audio_directory = '$HOME/vocal'
+audio_directory = '$HOME/vocal/audio'
+```
+
+### log_directory
+
+##### Description
+The directory that logs of all events are stored.
+If there are 10 or more files in the log directory, files are removed until there are only 10 remaining files.
+
+##### Default Value
+```toml
+log_directory = '$HOME/vocal/logs'
+```
+
+### log_file_prefix
+
+##### Description
+The prefix of the automatically created log files.
+Log files have the following naming schema: `{prefix}_{date}_{time}.log}`.
+
+##### Default Value
+```toml
+log_directory = '$HOME/vocal/logs'
 ```
 
 ### starting_volume

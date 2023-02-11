@@ -19,6 +19,11 @@ const MUTE: Key = Key {
     hint: "m: mute",
 };
 
+const UNMUTE: Key = Key {
+    key: KeyCode::Char('M'),
+    hint: "M: unmute",
+};
+
 const VOLUME_UP: Key = Key {
     key: KeyCode::Char('k'),
     hint: "k: volume up",
@@ -63,6 +68,7 @@ pub fn process_player_input<B: Backend>(
 ) {
     const PAUSE_KEY: KeyCode = PAUSE.key;
     const MUTE_KEY: KeyCode = MUTE.key;
+    const UNMUTE_KEY: KeyCode = UNMUTE.key;
     const VOLUME_UP_KEY: KeyCode = VOLUME_UP.key;
     const VOLUME_DOWN_KEY: KeyCode = VOLUME_DOWN.key;
     const SPEED_UP_KEY: KeyCode = SPEED_UP.key;
@@ -72,6 +78,7 @@ pub fn process_player_input<B: Backend>(
     match code {
         PAUSE_KEY => trigger(PlayerEvent::Pause, handler, instance),
         MUTE_KEY => trigger(PlayerEvent::Mute, handler, instance),
+        UNMUTE_KEY => trigger(PlayerEvent::Unmute, handler, instance),
         VOLUME_UP_KEY => trigger(PlayerEvent::VolumeUp, handler, instance),
         VOLUME_DOWN_KEY => trigger(PlayerEvent::VolumeDown, handler, instance),
         SPEED_UP_KEY => trigger(PlayerEvent::SpeedUp, handler, instance),

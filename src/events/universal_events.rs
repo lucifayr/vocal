@@ -1,4 +1,4 @@
-use std::process::exit;
+use std::{fmt::Display, process::exit};
 
 use crossterm::terminal::disable_raw_mode;
 use tui::backend::Backend;
@@ -9,6 +9,16 @@ use super::event::Event;
 
 pub enum UniversalEvent {
     QuitProgram,
+}
+
+impl Display for UniversalEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            UniversalEvent::QuitProgram => "-UNIVERSAL- The program has been exited",
+        };
+
+        write!(f, "{msg}")
+    }
 }
 
 trait UniversalActions {

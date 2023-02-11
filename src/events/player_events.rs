@@ -1,36 +1,52 @@
-use std::time::Instant;
+use std::fmt::Display;
 
 use tui::backend::Backend;
 
-use crate::{instance::player::Player, state::handler::StateHandler};
-
 use super::event::Event;
+use crate::{instance::player::Player, state::handler::StateHandler};
 
 pub enum PlayerEvent {
     Start,
     Stop,
     Pause,
     Mute,
-    ResetSpeed,
+    Unmute,
     VolumeUp,
     VolumeDown,
     SpeedUp,
     SpeedDown,
-    Tick,
-    ResetTick,
+    ResetSpeed,
+}
+
+impl Display for PlayerEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            PlayerEvent::Start => "-AUDIO TRACK- Audio has started",
+            PlayerEvent::Stop => "-AUDIO TRACK- Audio has stopped",
+            PlayerEvent::Pause => "-AUDIO TRACK- Audio has been paused",
+            PlayerEvent::Mute => "-AUDIO TRACK- Audio has been muted",
+            PlayerEvent::Unmute => "-AUDIO TRACK- Audio has been unmuted",
+            PlayerEvent::VolumeUp => "-AUDIO TRACK- Volume has been increased",
+            PlayerEvent::VolumeDown => "-AUDIO TRACK- Volume has been decreased",
+            PlayerEvent::SpeedUp => "-AUDIO TRACK- Speed has been increased",
+            PlayerEvent::SpeedDown => "-AUDIO TRACK- Speed has been decreased",
+            PlayerEvent::ResetSpeed => "-AUDIO TRACK- Speed has been reset",
+        };
+
+        write!(f, "{msg}")
+    }
 }
 
 trait PlayerActions {
     fn stop(instance: &mut Player);
     fn pause(instance: &mut Player);
     fn mute(&mut self, instance: &mut Player);
-    fn reset_speed(&mut self, instance: &mut Player);
+    fn unmute(&mut self, instance: &mut Player);
     fn volume_up(&mut self, instance: &mut Player);
     fn volume_down(&mut self, instance: &mut Player);
     fn speed_up(&mut self, instance: &mut Player);
     fn speed_down(&mut self, instance: &mut Player);
-    fn tick(instance: &mut Player, speed: f64);
-    fn reset_tick(instance: &mut Player);
+    fn reset_speed(&mut self, instance: &mut Player);
 }
 
 impl<B: Backend> PlayerActions for StateHandler<B> {
@@ -48,22 +64,22 @@ impl<B: Backend> PlayerActions for StateHandler<B> {
     }
 
     fn mute(&mut self, instance: &mut Player) {
-        if !self.state.is_muted {
-            self.state.is_muted = true;
-            instance.sink.set_volume(0.0);
-        } else {
-            self.state.is_muted = false;
-            instance
-                .sink
-                .set_volume(self.get_state().get_volume_decimal());
+        if self.state.is_muted {
+            return;
         }
+
+        self.state.is_muted = true;
+        instance.sink.set_volume(0.0);
     }
 
-    fn reset_speed(&mut self, instance: &mut Player) {
-        self.state.speed = 100;
-        instance
-            .sink
-            .set_speed(self.get_state().get_speed_decimal());
+    fn unmute(&mut self, instance: &mut Player) {
+        if !self.state.is_muted {
+            return;
+        }
+
+        self.state.is_muted = false;
+        let volume = self.get_state().get_volume_decimal();
+        instance.sink.set_volume(volume);
     }
 
     fn volume_up(&mut self, instance: &mut Player) {
@@ -116,17 +132,11 @@ impl<B: Backend> PlayerActions for StateHandler<B> {
         }
     }
 
-    fn tick(instance: &mut Player, speed: f64) {
-        instance.state.passed_time +=
-            instance.state.time_since_last_tick.elapsed().as_secs_f64() * speed;
-        instance.state.time_since_last_tick = Instant::now();
-
-        instance.state.progress =
-            instance.state.passed_time / instance.state.duration.as_secs_f64();
-    }
-
-    fn reset_tick(instance: &mut Player) {
-        instance.state.time_since_last_tick = Instant::now();
+    fn reset_speed(&mut self, instance: &mut Player) {
+        self.state.speed = 100;
+        instance
+            .sink
+            .set_speed(self.get_state().get_speed_decimal());
     }
 }
 
@@ -137,15 +147,12 @@ impl Event<Player> for PlayerEvent {
             PlayerEvent::Stop => StateHandler::<B>::stop(instance),
             PlayerEvent::Pause => StateHandler::<B>::pause(instance),
             PlayerEvent::Mute => handler.mute(instance),
-            PlayerEvent::ResetSpeed => handler.reset_speed(instance),
+            PlayerEvent::Unmute => handler.unmute(instance),
             PlayerEvent::VolumeUp => handler.volume_up(instance),
             PlayerEvent::VolumeDown => handler.volume_down(instance),
             PlayerEvent::SpeedUp => handler.speed_up(instance),
             PlayerEvent::SpeedDown => handler.speed_down(instance),
-            PlayerEvent::Tick => {
-                StateHandler::<B>::tick(instance, handler.get_state().get_speed_decimal() as f64)
-            }
-            PlayerEvent::ResetTick => StateHandler::<B>::reset_tick(instance),
+            PlayerEvent::ResetSpeed => handler.reset_speed(instance),
         }
     }
 }
