@@ -1,5 +1,6 @@
 use std::{thread, time::Duration};
 
+use crossterm::event::KeyCode;
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout},
@@ -9,8 +10,8 @@ use tui::{
 use crate::{
     events::handler::EventHandler,
     input::{
-        key::Key,
-        selection_keybindings::{get_selection_keybindings, poll_selection_input},
+        key::{poll_key, Key},
+        selection_keybindings::{get_selection_keybindings, process_selection_input},
     },
     render::{
         info::{draw_info_no_audio, get_filename_from_path},
@@ -19,7 +20,7 @@ use crate::{
     },
 };
 
-use super::Instance;
+use super::{Instance, InstanceRunable};
 
 pub struct Selection {
     pub content: Vec<String>,
@@ -27,8 +28,8 @@ pub struct Selection {
     pub state: ListState,
 }
 
-impl Instance for Selection {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+impl<I: Instance> InstanceRunable<I> for Selection {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, _parent: Option<&mut I>) {
         handler.clear_terminal().unwrap();
 
         let content = self.content.clone();
@@ -92,17 +93,22 @@ impl Instance for Selection {
                 }
             }
 
-            self.poll_input(handler);
+            if let Some(code) = poll_key() {
+                self.process_input(handler, code);
+            }
+
             thread::sleep(Duration::from_millis(interval));
         }
     }
+}
 
+impl Instance for Selection {
     fn get_keybindings() -> Vec<Key> {
         get_selection_keybindings()
     }
 
-    fn poll_input<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
-        poll_selection_input(handler, self)
+    fn process_input<B: Backend>(&mut self, handler: &mut EventHandler<B>, code: KeyCode) {
+        process_selection_input(handler, self, code);
     }
 }
 

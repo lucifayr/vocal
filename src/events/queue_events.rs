@@ -34,7 +34,7 @@ impl<B: Backend> QueueActions for EventHandler<B> {
 }
 
 impl Event<Queue> for QueueEvent {
-    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Queue) {
+    fn trigger<B: Backend>(&self, _handler: &mut EventHandler<B>, instance: &mut Queue) {
         match self {
             QueueEvent::StartQueue => {}
             QueueEvent::EndQueue => {}

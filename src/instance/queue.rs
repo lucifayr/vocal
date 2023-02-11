@@ -1,5 +1,4 @@
-use std::thread;
-
+use crossterm::event::KeyCode;
 use tui::backend::Backend;
 
 use crate::{
@@ -10,11 +9,11 @@ use crate::{
     },
     input::{
         key::Key,
-        queue_keybindings::{get_queue_keybindings, poll_queue_input},
+        queue_keybindings::{get_queue_keybindings, process_queue_input},
     },
 };
 
-use super::Instance;
+use super::{Instance, InstanceRunable};
 
 pub struct Queue {
     pub queue: Vec<String>,
@@ -22,8 +21,8 @@ pub struct Queue {
     pub looping: bool,
 }
 
-impl Instance for Queue {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+impl<I: Instance> InstanceRunable<I> for Queue {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, _parent: Option<&mut I>) {
         handler.clear_terminal().unwrap();
 
         let mut looping = true;
@@ -43,19 +42,21 @@ impl Instance for Queue {
                 )
                 .unwrap();
 
-                player.run(handler);
+                player.run(handler, Some(self));
             }
         }
 
         trigger(QueueEvent::EndQueue, handler, self);
     }
+}
 
+impl Instance for Queue {
     fn get_keybindings() -> Vec<Key> {
         get_queue_keybindings()
     }
 
-    fn poll_input<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
-        poll_queue_input(handler, self)
+    fn process_input<B: Backend>(&mut self, handler: &mut EventHandler<B>, code: KeyCode) {
+        process_queue_input(handler, self, code);
     }
 }
 

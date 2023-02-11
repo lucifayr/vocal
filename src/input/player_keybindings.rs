@@ -78,27 +78,27 @@ pub fn get_player_keybindings() -> Vec<Key> {
     ]
 }
 
-pub fn poll_player_input<B: Backend>(handler: &mut EventHandler<B>, instance: &mut Player) {
-    if poll(Duration::from_millis(1)).unwrap_or(false) {
-        if let Ok(Event::Key(key_event)) = read() {
-            const PAUSE_KEY: KeyCode = PAUSE.key;
-            const MUTE_KEY: KeyCode = MUTE.key;
-            const VOLUME_UP_KEY: KeyCode = VOLUME_UP.key;
-            const VOLUME_DOWN_KEY: KeyCode = VOLUME_DOWN.key;
-            const SPEED_UP_KEY: KeyCode = SPEED_UP.key;
-            const SPEED_DOWN_KEY: KeyCode = SPEED_DOWN.key;
-            const RESET_SPEED_KEY: KeyCode = RESET_SPEED.key;
+pub fn process_player_input<B: Backend>(
+    handler: &mut EventHandler<B>,
+    instance: &mut Player,
+    code: KeyCode,
+) {
+    const PAUSE_KEY: KeyCode = PAUSE.key;
+    const MUTE_KEY: KeyCode = MUTE.key;
+    const VOLUME_UP_KEY: KeyCode = VOLUME_UP.key;
+    const VOLUME_DOWN_KEY: KeyCode = VOLUME_DOWN.key;
+    const SPEED_UP_KEY: KeyCode = SPEED_UP.key;
+    const SPEED_DOWN_KEY: KeyCode = SPEED_DOWN.key;
+    const RESET_SPEED_KEY: KeyCode = RESET_SPEED.key;
 
-            match key_event.code {
-                PAUSE_KEY => trigger(AudioEvent::PauseAudio, handler, instance),
-                MUTE_KEY => trigger(AudioEvent::MuteAudio, handler, instance),
-                VOLUME_UP_KEY => trigger(AudioEvent::VolumeUp, handler, instance),
-                VOLUME_DOWN_KEY => trigger(AudioEvent::VolumeDown, handler, instance),
-                SPEED_UP_KEY => trigger(AudioEvent::SpeedUp, handler, instance),
-                SPEED_DOWN_KEY => trigger(AudioEvent::SpeedDown, handler, instance),
-                RESET_SPEED_KEY => trigger(AudioEvent::ResetSpeed, handler, instance),
-                _ => {}
-            }
-        }
+    match code {
+        PAUSE_KEY => trigger(AudioEvent::PauseAudio, handler, instance),
+        MUTE_KEY => trigger(AudioEvent::MuteAudio, handler, instance),
+        VOLUME_UP_KEY => trigger(AudioEvent::VolumeUp, handler, instance),
+        VOLUME_DOWN_KEY => trigger(AudioEvent::VolumeDown, handler, instance),
+        SPEED_UP_KEY => trigger(AudioEvent::SpeedUp, handler, instance),
+        SPEED_DOWN_KEY => trigger(AudioEvent::SpeedDown, handler, instance),
+        RESET_SPEED_KEY => trigger(AudioEvent::ResetSpeed, handler, instance),
+        _ => {}
     }
 }

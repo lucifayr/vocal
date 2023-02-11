@@ -88,7 +88,7 @@ impl<B: Backend> SelectionActions for EventHandler<B> {
 }
 
 impl Event<Selection> for SelectionEvent {
-    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Selection) {
+    fn trigger<B: Backend>(&self, _handler: &mut EventHandler<B>, instance: &mut Selection) {
         match self {
             SelectionEvent::PlayQueue => {
                 // let (sink, _stream) = init_audio_handler().unwrap();

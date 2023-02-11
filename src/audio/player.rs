@@ -1,5 +1,6 @@
 use std::{thread, time::Duration};
 
+use crossterm::event::KeyCode;
 use rodio::{OutputStream, Sink, Source};
 use tui::{
     backend::Backend,
@@ -13,10 +14,10 @@ use crate::{
         handler::{trigger, EventHandler},
     },
     input::{
-        key::Key,
-        player_keybindings::{get_player_keybindings, poll_player_input},
+        key::{poll_key, Key},
+        player_keybindings::{get_player_keybindings, process_player_input},
     },
-    instance::{queue::Queue, Instance},
+    instance::{queue::Queue, Instance, InstanceRunable},
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
@@ -40,8 +41,8 @@ pub struct Player {
     pub interupted: bool,
 }
 
-impl Instance for Player {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+impl InstanceRunable<Queue> for Player {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, mut parent: Option<&mut Queue>) {
         trigger(AudioEvent::StartAudio, handler, self);
         let terminal_size = handler.get_terminal_size().unwrap();
 
@@ -128,7 +129,14 @@ impl Instance for Player {
             }
 
             loop {
-                self.poll_input(handler);
+                if let Some(code) = poll_key() {
+                    if let Some(queue) = parent.as_mut() {
+                        queue.process_input(handler, code);
+                    }
+
+                    self.process_input(handler, code);
+                }
+
                 if !self.state.is_paused {
                     break;
                 } else {
@@ -138,13 +146,15 @@ impl Instance for Player {
             thread::sleep(Duration::from_millis(interval.into()));
         }
     }
+}
 
+impl Instance for Player {
     fn get_keybindings() -> Vec<Key> {
         get_player_keybindings()
     }
 
-    fn poll_input<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
-        poll_player_input(handler, self)
+    fn process_input<B: Backend>(&mut self, handler: &mut EventHandler<B>, code: KeyCode) {
+        process_player_input(handler, self, code)
     }
 }
 

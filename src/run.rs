@@ -5,7 +5,7 @@ use tui::{backend::CrosstermBackend, Terminal};
 use crate::{
     events::handler::EventHandler,
     input::{args::Args, config::Config},
-    instance::{queue::Queue, selection::Selection, Instance},
+    instance::{queue::Queue, selection::Selection, InstanceRunable},
     state::runtime_state::RuntimeState,
 };
 
@@ -25,7 +25,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
         Some(paths) => {
             let mut queue = Queue::new(paths);
             let mut handler = EventHandler::new(state, config, terminal);
-            queue.run(&mut handler);
+            queue.run(&mut handler, None::<&mut Selection>);
         }
         None => {
             let paths = match args.load {
@@ -40,7 +40,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
 
             let mut selection = Selection::new(paths);
             let mut handler = EventHandler::new(state, config, terminal);
-            selection.run(&mut handler);
+            selection.run(&mut handler, None::<&mut Selection>);
         }
     };
     Ok(())

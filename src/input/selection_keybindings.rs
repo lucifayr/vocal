@@ -73,31 +73,31 @@ pub fn get_selection_keybindings() -> Vec<Key> {
     ]
 }
 
-pub fn poll_selection_input<B: Backend>(handler: &mut EventHandler<B>, instance: &mut Selection) {
-    if poll(Duration::from_millis(1)).unwrap_or(false) {
-        if let Ok(Event::Key(key_event)) = read() {
-            const QUIT_KEY: KeyCode = QUIT.key;
-            const PLAY_KEY: KeyCode = PLAY.key;
-            const UP_KEY: KeyCode = UP.key;
-            const DOWN_KEY: KeyCode = DOWN.key;
-            const REMOVE_KEY: KeyCode = REMOVE.key;
-            const ADD_TO_TOP_KEY: KeyCode = ADD_TO_TOP.key;
-            const ADD_TO_BOTTOM_KEY: KeyCode = ADD_TO_BOTTOM.key;
-            const GO_TO_TOP_KEY: KeyCode = GO_TO_TOP.key;
-            const GO_TO_BOTTOM_KEY: KeyCode = GO_TO_BOTTOM.key;
+pub fn process_selection_input<B: Backend>(
+    handler: &mut EventHandler<B>,
+    instance: &mut Selection,
+    code: KeyCode,
+) {
+    const QUIT_KEY: KeyCode = QUIT.key;
+    const PLAY_KEY: KeyCode = PLAY.key;
+    const UP_KEY: KeyCode = UP.key;
+    const DOWN_KEY: KeyCode = DOWN.key;
+    const REMOVE_KEY: KeyCode = REMOVE.key;
+    const ADD_TO_TOP_KEY: KeyCode = ADD_TO_TOP.key;
+    const ADD_TO_BOTTOM_KEY: KeyCode = ADD_TO_BOTTOM.key;
+    const GO_TO_TOP_KEY: KeyCode = GO_TO_TOP.key;
+    const GO_TO_BOTTOM_KEY: KeyCode = GO_TO_BOTTOM.key;
 
-            match key_event.code {
-                QUIT_KEY => trigger(UniversalEvent::QuitProgram, handler, instance),
-                PLAY_KEY => trigger(SelectionEvent::PlayQueue, handler, instance),
-                UP_KEY => trigger(SelectionEvent::MoveUp, handler, instance),
-                DOWN_KEY => trigger(SelectionEvent::MoveDown, handler, instance),
-                REMOVE_KEY => trigger(SelectionEvent::RemoveFromQueue, handler, instance),
-                ADD_TO_TOP_KEY => trigger(SelectionEvent::AddToTopOfQueue, handler, instance),
-                ADD_TO_BOTTOM_KEY => trigger(SelectionEvent::AddToBottomOfQueue, handler, instance),
-                GO_TO_TOP_KEY => trigger(SelectionEvent::MoveToTop, handler, instance),
-                GO_TO_BOTTOM_KEY => trigger(SelectionEvent::MoveToBottom, handler, instance),
-                _ => {}
-            }
-        }
+    match code {
+        QUIT_KEY => trigger(UniversalEvent::QuitProgram, handler, instance),
+        PLAY_KEY => trigger(SelectionEvent::PlayQueue, handler, instance),
+        UP_KEY => trigger(SelectionEvent::MoveUp, handler, instance),
+        DOWN_KEY => trigger(SelectionEvent::MoveDown, handler, instance),
+        REMOVE_KEY => trigger(SelectionEvent::RemoveFromQueue, handler, instance),
+        ADD_TO_TOP_KEY => trigger(SelectionEvent::AddToTopOfQueue, handler, instance),
+        ADD_TO_BOTTOM_KEY => trigger(SelectionEvent::AddToBottomOfQueue, handler, instance),
+        GO_TO_TOP_KEY => trigger(SelectionEvent::MoveToTop, handler, instance),
+        GO_TO_BOTTOM_KEY => trigger(SelectionEvent::MoveToBottom, handler, instance),
+        _ => {}
     }
 }
