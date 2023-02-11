@@ -12,6 +12,7 @@ use crate::{
     events::{
         audio_events::AudioEvent,
         handler::{trigger, EventHandler},
+        queue_events::QueueEvent,
     },
     input::{
         key::{poll_key, Key},
@@ -38,12 +39,11 @@ pub struct Player {
     _stream: OutputStream,
     pub source_data: SourceData,
     pub state: AudioState,
-    pub interupted: bool,
 }
 
 impl InstanceRunable<Queue> for Player {
     fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, mut parent: Option<&mut Queue>) {
-        trigger(AudioEvent::StartAudio, handler, self);
+        trigger(AudioEvent::Start, handler, self);
         let terminal_size = handler.get_terminal_size().unwrap();
 
         let source = SourceData::get_source(&self.source_data.path).unwrap();
@@ -55,10 +55,17 @@ impl InstanceRunable<Queue> for Player {
         loop {
             trigger(AudioEvent::Tick, handler, self);
 
-            let progress = self.state.progress;
+            if let Some(queue) = parent.as_mut() {
+                if queue.interupted {
+                    trigger(AudioEvent::End, handler, self);
+                    trigger(QueueEvent::End, handler, queue);
+                    return;
+                }
+            }
 
+            let progress = self.state.progress;
             if progress > 1.0 {
-                trigger(AudioEvent::EndAudio, handler, self);
+                trigger(AudioEvent::End, handler, self);
                 return;
             }
 
@@ -180,7 +187,6 @@ impl Player {
             _stream,
             source_data,
             state: AudioState::new(duration),
-            interupted: false,
         })
     }
 }

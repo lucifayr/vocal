@@ -92,8 +92,8 @@ pub fn process_player_input<B: Backend>(
     const RESET_SPEED_KEY: KeyCode = RESET_SPEED.key;
 
     match code {
-        PAUSE_KEY => trigger(AudioEvent::PauseAudio, handler, instance),
-        MUTE_KEY => trigger(AudioEvent::MuteAudio, handler, instance),
+        PAUSE_KEY => trigger(AudioEvent::Pause, handler, instance),
+        MUTE_KEY => trigger(AudioEvent::Mute, handler, instance),
         VOLUME_UP_KEY => trigger(AudioEvent::VolumeUp, handler, instance),
         VOLUME_DOWN_KEY => trigger(AudioEvent::VolumeDown, handler, instance),
         SPEED_UP_KEY => trigger(AudioEvent::SpeedUp, handler, instance),

@@ -7,10 +7,10 @@ use crate::audio::player::Player;
 use super::handler::{Event, EventHandler};
 
 pub enum AudioEvent {
-    StartAudio,
-    EndAudio,
-    PauseAudio,
-    MuteAudio,
+    Start,
+    End,
+    Pause,
+    Mute,
     ResetSpeed,
     VolumeUp,
     VolumeDown,
@@ -128,10 +128,10 @@ impl<B: Backend> AudioActions for EventHandler<B> {
 impl Event<Player> for AudioEvent {
     fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Player) {
         match self {
-            AudioEvent::StartAudio => {}
-            AudioEvent::EndAudio => {}
-            AudioEvent::PauseAudio => EventHandler::<B>::pause(instance),
-            AudioEvent::MuteAudio => handler.mute(instance),
+            AudioEvent::Start => {}
+            AudioEvent::End => {}
+            AudioEvent::Pause => EventHandler::<B>::pause(instance),
+            AudioEvent::Mute => handler.mute(instance),
             AudioEvent::ResetSpeed => handler.reset_speed(instance),
             AudioEvent::VolumeUp => handler.volume_up(instance),
             AudioEvent::VolumeDown => handler.volume_down(instance),
