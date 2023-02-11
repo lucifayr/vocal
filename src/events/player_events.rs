@@ -2,9 +2,9 @@ use std::time::Instant;
 
 use tui::backend::Backend;
 
-use crate::instance::player::Player;
+use crate::{instance::player::Player, state::handler::StateHandler};
 
-use super::handler::{Event, EventHandler};
+use super::event::Event;
 
 pub enum PlayerEvent {
     Start,
@@ -33,7 +33,7 @@ trait PlayerActions {
     fn reset_tick(instance: &mut Player);
 }
 
-impl<B: Backend> PlayerActions for EventHandler<B> {
+impl<B: Backend> PlayerActions for StateHandler<B> {
     fn stop(instance: &mut Player) {
         instance.sink.stop();
     }
@@ -131,11 +131,11 @@ impl<B: Backend> PlayerActions for EventHandler<B> {
 }
 
 impl Event<Player> for PlayerEvent {
-    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Player) {
+    fn trigger<B: Backend>(&self, handler: &mut StateHandler<B>, instance: &mut Player) {
         match self {
             PlayerEvent::Start => {}
-            PlayerEvent::Stop => EventHandler::<B>::stop(instance),
-            PlayerEvent::Pause => EventHandler::<B>::pause(instance),
+            PlayerEvent::Stop => StateHandler::<B>::stop(instance),
+            PlayerEvent::Pause => StateHandler::<B>::pause(instance),
             PlayerEvent::Mute => handler.mute(instance),
             PlayerEvent::ResetSpeed => handler.reset_speed(instance),
             PlayerEvent::VolumeUp => handler.volume_up(instance),
@@ -143,9 +143,9 @@ impl Event<Player> for PlayerEvent {
             PlayerEvent::SpeedUp => handler.speed_up(instance),
             PlayerEvent::SpeedDown => handler.speed_down(instance),
             PlayerEvent::Tick => {
-                EventHandler::<B>::tick(instance, handler.get_state().get_speed_decimal() as f64)
+                StateHandler::<B>::tick(instance, handler.get_state().get_speed_decimal() as f64)
             }
-            PlayerEvent::ResetTick => EventHandler::<B>::reset_tick(instance),
+            PlayerEvent::ResetTick => StateHandler::<B>::reset_tick(instance),
         }
     }
 }

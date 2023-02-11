@@ -1,15 +1,10 @@
-
-
-use crossterm::event::{KeyCode};
+use crossterm::event::KeyCode;
 use tui::backend::Backend;
 
 use crate::{
-    events::{
-        handler::{trigger, EventHandler},
-        queue_events::QueueEvent,
-        universal_events::UniversalEvent,
-    },
+    events::{event::trigger, queue_events::QueueEvent, universal_events::UniversalEvent},
     instance::queue::Queue,
+    state::handler::StateHandler,
 };
 
 use super::key::Key;
@@ -39,7 +34,7 @@ pub fn get_queue_keybindings() -> Vec<Key> {
 }
 
 pub fn process_queue_input<B: Backend>(
-    handler: &mut EventHandler<B>,
+    handler: &mut StateHandler<B>,
     instance: &mut Queue,
     code: KeyCode,
 ) {

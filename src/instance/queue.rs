@@ -2,14 +2,12 @@ use crossterm::event::KeyCode;
 use tui::backend::Backend;
 
 use crate::{
-    events::{
-        handler::{trigger, EventHandler},
-        queue_events::QueueEvent,
-    },
+    events::{event::trigger, queue_events::QueueEvent},
     input::{
         key::Key,
         queue_keybindings::{get_queue_keybindings, process_queue_input},
     },
+    state::handler::StateHandler,
 };
 
 use super::{player::Player, Instance, InstanceRunable, InstanceRunableWithParent};
@@ -21,7 +19,7 @@ pub struct Queue {
 }
 
 impl InstanceRunable for Queue {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+    fn run<B: Backend>(&mut self, handler: &mut StateHandler<B>) {
         handler.clear_terminal().unwrap();
 
         let mut looping = true;
@@ -53,7 +51,7 @@ impl Instance for Queue {
         get_queue_keybindings()
     }
 
-    fn process_input<B: Backend>(&mut self, handler: &mut EventHandler<B>, code: KeyCode) {
+    fn process_input<B: Backend>(&mut self, handler: &mut StateHandler<B>, code: KeyCode) {
         process_queue_input(handler, self, code);
     }
 }

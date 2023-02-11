@@ -1,20 +1,18 @@
 use tui::{backend::Backend, layout::Rect, Terminal};
 
-use crate::{input::config::Config, instance::Instance, state::runtime_state::RuntimeState};
+use crate::input::config::Config;
 
-pub trait Event<I: Instance> {
-    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut I);
-}
+use super::runtime_state::RuntimeState;
 
-pub struct EventHandler<B: Backend> {
+pub struct StateHandler<B: Backend> {
     pub state: RuntimeState,
     config: Config,
     pub terminal: Terminal<B>,
 }
 
-impl<B: Backend> EventHandler<B> {
+impl<B: Backend> StateHandler<B> {
     pub fn new(state: RuntimeState, config: Config, terminal: Terminal<B>) -> Self {
-        EventHandler {
+        StateHandler {
             state,
             config,
             terminal,
@@ -36,13 +34,4 @@ impl<B: Backend> EventHandler<B> {
     pub fn get_terminal_size(&self) -> Result<Rect, std::io::Error> {
         self.terminal.size()
     }
-}
-
-pub fn trigger<B: Backend, I: Instance, E: Event<I>>(
-    event: E,
-    handler: &mut EventHandler<B>,
-    instance: &mut I,
-) {
-    // do logging
-    event.trigger(handler, instance);
 }

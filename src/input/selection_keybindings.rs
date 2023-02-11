@@ -1,15 +1,10 @@
-
-
-use crossterm::event::{KeyCode};
+use crossterm::event::KeyCode;
 use tui::backend::Backend;
 
 use crate::{
-    events::{
-        handler::{trigger, EventHandler},
-        selection_events::SelectionEvent,
-        universal_events::UniversalEvent,
-    },
+    events::{event::trigger, selection_events::SelectionEvent, universal_events::UniversalEvent},
     instance::selection::Selection,
+    state::handler::StateHandler,
 };
 
 use super::key::Key;
@@ -74,7 +69,7 @@ pub fn get_selection_keybindings() -> Vec<Key> {
 }
 
 pub fn process_selection_input<B: Backend>(
-    handler: &mut EventHandler<B>,
+    handler: &mut StateHandler<B>,
     instance: &mut Selection,
     code: KeyCode,
 ) {

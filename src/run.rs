@@ -3,10 +3,9 @@ use std::io;
 use tui::{backend::CrosstermBackend, Terminal};
 
 use crate::{
-    events::handler::EventHandler,
     input::{args::Args, config::Config},
     instance::{selection::Selection, InstanceRunable},
-    state::runtime_state::RuntimeState,
+    state::{handler::StateHandler, runtime_state::RuntimeState},
 };
 
 pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
@@ -33,7 +32,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
     };
 
     let mut selection = Selection::new(paths);
-    let mut handler = EventHandler::new(state, config, terminal);
+    let mut handler = StateHandler::new(state, config, terminal);
     selection.run(&mut handler);
 
     Ok(())

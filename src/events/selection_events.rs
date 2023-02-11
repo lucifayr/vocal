@@ -1,8 +1,11 @@
 use tui::backend::Backend;
 
-use crate::instance::{queue::Queue, selection::Selection, InstanceRunable};
+use crate::{
+    instance::{queue::Queue, selection::Selection, InstanceRunable},
+    state::handler::StateHandler,
+};
 
-use super::handler::{Event, EventHandler};
+use super::event::Event;
 
 pub enum SelectionEvent {
     PlayQueue,
@@ -26,7 +29,7 @@ trait SelectionActions {
     fn remove_from_queue(instance: &mut Selection);
 }
 
-impl<B: Backend> SelectionActions for EventHandler<B> {
+impl<B: Backend> SelectionActions for StateHandler<B> {
     fn play_queue(&mut self, instance: &mut Selection) {
         let mut queue = Queue::new(instance.queue.clone());
         queue.run(self);
@@ -94,18 +97,18 @@ impl<B: Backend> SelectionActions for EventHandler<B> {
 }
 
 impl Event<Selection> for SelectionEvent {
-    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Selection) {
+    fn trigger<B: Backend>(&self, handler: &mut StateHandler<B>, instance: &mut Selection) {
         match self {
             SelectionEvent::PlayQueue => handler.play_queue(instance),
-            SelectionEvent::MoveUp => EventHandler::<B>::move_up(instance),
-            SelectionEvent::MoveDown => EventHandler::<B>::move_down(instance),
-            SelectionEvent::MoveToTop => EventHandler::<B>::move_to_top(instance),
-            SelectionEvent::MoveToBottom => EventHandler::<B>::move_to_bottom(instance),
-            SelectionEvent::AddToTopOfQueue => EventHandler::<B>::add_to_top_of_queue(instance),
+            SelectionEvent::MoveUp => StateHandler::<B>::move_up(instance),
+            SelectionEvent::MoveDown => StateHandler::<B>::move_down(instance),
+            SelectionEvent::MoveToTop => StateHandler::<B>::move_to_top(instance),
+            SelectionEvent::MoveToBottom => StateHandler::<B>::move_to_bottom(instance),
+            SelectionEvent::AddToTopOfQueue => StateHandler::<B>::add_to_top_of_queue(instance),
             SelectionEvent::AddToBottomOfQueue => {
-                EventHandler::<B>::add_to_bottom_of_queue(instance)
+                StateHandler::<B>::add_to_bottom_of_queue(instance)
             }
-            SelectionEvent::RemoveFromQueue => EventHandler::<B>::remove_from_queue(instance),
+            SelectionEvent::RemoveFromQueue => StateHandler::<B>::remove_from_queue(instance),
         }
     }
 }

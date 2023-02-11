@@ -8,7 +8,6 @@ use tui::{
 };
 
 use crate::{
-    events::handler::EventHandler,
     input::{
         key::{poll_key, Key},
         selection_keybindings::{get_selection_keybindings, process_selection_input},
@@ -18,6 +17,7 @@ use crate::{
         keybindings::draw_keys,
         list::draw_list,
     },
+    state::handler::StateHandler,
 };
 
 use super::{Instance, InstanceRunable};
@@ -29,7 +29,7 @@ pub struct Selection {
 }
 
 impl InstanceRunable for Selection {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+    fn run<B: Backend>(&mut self, handler: &mut StateHandler<B>) {
         handler.clear_terminal().unwrap();
 
         let content = self.content.clone();
@@ -107,7 +107,7 @@ impl Instance for Selection {
         get_selection_keybindings()
     }
 
-    fn process_input<B: Backend>(&mut self, handler: &mut EventHandler<B>, code: KeyCode) {
+    fn process_input<B: Backend>(&mut self, handler: &mut StateHandler<B>, code: KeyCode) {
         process_selection_input(handler, self, code);
     }
 }

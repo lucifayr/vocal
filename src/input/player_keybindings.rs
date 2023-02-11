@@ -2,11 +2,9 @@ use crossterm::event::KeyCode;
 use tui::backend::Backend;
 
 use crate::{
-    events::{
-        player_events::PlayerEvent,
-        handler::{trigger, EventHandler},
-    },
+    events::{event::trigger, player_events::PlayerEvent},
     instance::player::Player,
+    state::handler::StateHandler,
 };
 
 use super::key::Key;
@@ -59,7 +57,7 @@ pub fn get_player_keybindings() -> Vec<Key> {
 }
 
 pub fn process_player_input<B: Backend>(
-    handler: &mut EventHandler<B>,
+    handler: &mut StateHandler<B>,
     instance: &mut Player,
     code: KeyCode,
 ) {

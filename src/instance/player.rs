@@ -9,10 +9,7 @@ use tui::{
 
 use crate::{
     audio::{init::init_audio_handler, source_data::SourceData},
-    events::{
-        player_events::PlayerEvent,
-        handler::{trigger, EventHandler},
-    },
+    events::{event::trigger, player_events::PlayerEvent},
     input::{
         key::{poll_key, Key},
         player_keybindings::{get_player_keybindings, process_player_input},
@@ -24,7 +21,7 @@ use crate::{
         info::draw_info,
         keybindings::draw_keys,
     },
-    state::audio_state::AudioState,
+    state::{audio_state::AudioState, handler::StateHandler},
 };
 
 pub struct Player {
@@ -39,7 +36,7 @@ pub struct Player {
 }
 
 impl InstanceRunableWithParent<Queue> for Player {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: &mut Queue) {
+    fn run<B: Backend>(&mut self, handler: &mut StateHandler<B>, parent: &mut Queue) {
         trigger(PlayerEvent::Start, handler, self);
         let terminal_size = handler.get_terminal_size().unwrap();
 
@@ -151,7 +148,7 @@ impl Instance for Player {
         get_player_keybindings()
     }
 
-    fn process_input<B: Backend>(&mut self, handler: &mut EventHandler<B>, code: KeyCode) {
+    fn process_input<B: Backend>(&mut self, handler: &mut StateHandler<B>, code: KeyCode) {
         process_player_input(handler, self, code)
     }
 }
