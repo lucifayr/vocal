@@ -55,6 +55,7 @@ color = 'blue'
 | lightmagenta | LightMagenta |
 | lightcyan    | LightCyan    |
 | white        | White        |
+| rainbow      | Rainbow      |
 
 ### highlight_color
 

@@ -3,6 +3,7 @@ use std::{
     fs::{create_dir_all, read_dir},
 };
 
+use rand::Rng;
 use serde_derive::{Deserialize, Serialize};
 use tui::style::Color;
 
@@ -50,6 +51,7 @@ impl Config {
 
     pub fn get_color(&self) -> Color {
         match self.color.as_str() {
+            "rainbow" | "Rainbow" => get_random_color(),
             "black" | "Black" => Color::Black,
             "red" | "Red" => Color::Red,
             "green" | "Green" => Color::Green,
@@ -88,5 +90,26 @@ impl Config {
             "white" | "White" => Color::White,
             _ => Color::Magenta,
         }
+    }
+}
+
+fn get_random_color() -> Color {
+    let r = rand::thread_rng().gen_range(0..15);
+    match r {
+        0 => Color::Black,
+        1 => Color::Red,
+        2 => Color::Green,
+        3 => Color::Yellow,
+        4 => Color::Blue,
+        5 => Color::Magenta,
+        6 => Color::Cyan,
+        7 => Color::Gray,
+        8 => Color::LightRed,
+        9 => Color::LightGreen,
+        10 => Color::LightYellow,
+        11 => Color::LightBlue,
+        12 => Color::LightMagenta,
+        13 => Color::LightCyan,
+        _ => Color::White,
     }
 }
