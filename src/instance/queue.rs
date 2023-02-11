@@ -1,3 +1,5 @@
+use std::thread;
+
 use tui::backend::Backend;
 
 use crate::{
@@ -20,8 +22,8 @@ pub struct Queue {
     pub looping: bool,
 }
 
-impl<I: Instance<()>> Instance<I> for Queue {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: Option<I>) {
+impl Instance for Queue {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
         handler.clear_terminal().unwrap();
 
         let mut looping = true;
@@ -40,7 +42,8 @@ impl<I: Instance<()>> Instance<I> for Queue {
                     handler.get_state().get_speed_decimal(),
                 )
                 .unwrap();
-                player.run(handler, Some(self));
+
+                player.run(handler);
             }
         }
 

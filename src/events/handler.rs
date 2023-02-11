@@ -2,7 +2,7 @@ use tui::{backend::Backend, layout::Rect, Terminal};
 
 use crate::{input::config::Config, instance::Instance, state::runtime_state::RuntimeState};
 
-pub trait Event<I: Instance<()>> {
+pub trait Event<I: Instance> {
     fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut I);
 }
 
@@ -38,7 +38,7 @@ impl<B: Backend> EventHandler<B> {
     }
 }
 
-pub fn trigger<B: Backend, I: Instance<()>, E: Event<I>>(
+pub fn trigger<B: Backend, I: Instance, E: Event<I>>(
     event: E,
     handler: &mut EventHandler<B>,
     instance: &mut I,

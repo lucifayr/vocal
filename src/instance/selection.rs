@@ -27,7 +27,7 @@ pub struct Selection {
     pub state: ListState,
 }
 
-impl<I: Instance<()>> Instance<I> for Selection {
+impl Instance for Selection {
     fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
         handler.clear_terminal().unwrap();
 

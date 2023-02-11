@@ -40,8 +40,8 @@ pub struct Player {
     pub interupted: bool,
 }
 
-impl Instance<Queue> for Player {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: Option<Queue>) {
+impl Instance for Player {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
         trigger(AudioEvent::StartAudio, handler, self);
         let terminal_size = handler.get_terminal_size().unwrap();
 
