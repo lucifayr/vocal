@@ -1,11 +1,14 @@
-use rodio::Sink;
 use tui::backend::Backend;
 
 use crate::{
-    audio::{player::Player, source_data::SourceData},
+    audio::player::Player,
     events::{
         handler::{trigger, EventHandler},
         queue_events::QueueEvent,
+    },
+    input::{
+        key::Key,
+        queue_keybindings::{get_queue_keybindings, poll_queue_input},
     },
 };
 
@@ -13,13 +16,12 @@ use super::Instance;
 
 pub struct Queue {
     pub queue: Vec<String>,
-    pub sink: Sink,
     pub interupted: bool,
     pub looping: bool,
 }
 
-impl Instance for Queue {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+impl<I: Instance<()>> Instance<I> for Queue {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: Option<I>) {
         handler.clear_terminal().unwrap();
 
         let mut looping = true;
@@ -32,20 +34,32 @@ impl Instance for Queue {
                     return;
                 }
 
-                let mut player = Player::new(path).unwrap();
-                player.play(SourceData::get_source(path).unwrap(), handler, self);
+                let mut player = Player::new(
+                    path,
+                    handler.get_state().get_volume_decimal(),
+                    handler.get_state().get_speed_decimal(),
+                )
+                .unwrap();
+                player.run(handler, Some(self));
             }
         }
 
         trigger(QueueEvent::EndQueue, handler, self);
     }
+
+    fn get_keybindings() -> Vec<Key> {
+        get_queue_keybindings()
+    }
+
+    fn poll_input<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+        poll_queue_input(handler, self)
+    }
 }
 
 impl Queue {
-    pub fn new(queue: Vec<String>, sink: Sink) -> Self {
+    pub fn new(queue: Vec<String>) -> Self {
         Queue {
             queue,
-            sink,
             interupted: false,
             looping: false,
         }

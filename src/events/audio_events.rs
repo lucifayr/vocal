@@ -1,159 +1,146 @@
-// use std::time::Instant;
+use std::time::Instant;
 
-// use rodio::Sink;
-// use tui::backend::Backend;
+use tui::backend::Backend;
 
-// use crate::state::audio_state::AudioState;
+use crate::audio::player::Player;
 
-// use super::handler::{Event, EventHandler};
+use super::handler::{Event, EventHandler};
 
-// pub enum AudioEvent {
-//     StartAudio,
-//     EndAudio,
-//     PauseAudio,
-//     MuteAudio,
-//     ResetSpeed,
-//     VolumeUp,
-//     VolumeDown,
-//     SpeedUp,
-//     SpeedDown,
-//     Tick,
-//     ResetTick,
-// }
+pub enum AudioEvent {
+    StartAudio,
+    EndAudio,
+    PauseAudio,
+    MuteAudio,
+    ResetSpeed,
+    VolumeUp,
+    VolumeDown,
+    SpeedUp,
+    SpeedDown,
+    Tick,
+    ResetTick,
+}
 
-// trait AudioActions {
-//     fn pause(&mut self);
-//     fn mute(&mut self);
-//     fn reset_speed(&mut self);
-//     fn volume_up(&mut self);
-//     fn volume_down(&mut self);
-//     fn speed_up(&mut self);
-//     fn speed_down(&mut self);
-//     fn tick(&mut self);
-//     fn reset_tick(&mut self);
-// }
+trait AudioActions {
+    fn pause(instance: &mut Player);
+    fn mute(&mut self, instance: &mut Player);
+    fn reset_speed(&mut self, instance: &mut Player);
+    fn volume_up(&mut self, instance: &mut Player);
+    fn volume_down(&mut self, instance: &mut Player);
+    fn speed_up(&mut self, instance: &mut Player);
+    fn speed_down(&mut self, instance: &mut Player);
+    fn tick(instance: &mut Player, speed: f64);
+    fn reset_tick(instance: &mut Player);
+}
 
-// fn pause(state: &mut AudioState, sink: &Sink) {
-//     state.is_paused = !state.is_paused;
-//     if state.is_paused {
-//         sink.pause();
-//     } else {
-//         sink.play();
-//     }
-// }
+impl<B: Backend> AudioActions for EventHandler<B> {
+    fn pause(instance: &mut Player) {
+        instance.state.is_paused = !instance.state.is_paused;
+        if instance.state.is_paused {
+            instance.sink.pause();
+        } else {
+            instance.sink.play();
+        }
+    }
 
-// impl<B: Backend> AudioActions for EventHandler<B> {
-//     fn pause(&mut self) {
-//         if let Some(instance) = self.audio_instance.as_mut() {
-//             instance.a_state.is_paused = !instance.a_state.is_paused;
-//             if instance.a_state.is_paused {
-//                 self.sink.pause();
-//             } else {
-//                 self.sink.play();
-//             }
-//         }
-//     }
+    fn mute(&mut self, instance: &mut Player) {
+        if !self.state.is_muted {
+            instance.sink.set_volume(0.0);
+            self.state.is_muted = true;
+        } else {
+            instance
+                .sink
+                .set_volume(self.get_state().get_volume_decimal());
+            self.state.is_muted = false;
+        }
+    }
 
-//     fn mute(&mut self) {
-//         if !self.r_state.is_muted {
-//             self.sink.set_volume(0.0);
-//             self.r_state.is_muted = true;
-//         } else {
-//             self.sink.set_volume(self.r_state.volume_decimal);
-//             self.r_state.is_muted = false;
-//         }
-//     }
+    fn reset_speed(&mut self, instance: &mut Player) {
+        self.state.speed = 100;
+        instance
+            .sink
+            .set_speed(self.get_state().get_speed_decimal());
+    }
 
-//     fn reset_speed(&mut self) {
-//         self.r_state.speed = 100;
-//         self.r_state.speed_decimal = self.r_state.speed as f32 / 100.0;
-//         self.sink.set_speed(self.r_state.speed_decimal);
-//     }
+    fn volume_up(&mut self, instance: &mut Player) {
+        self.state.volume /= 10;
+        self.state.volume *= 10;
 
-//     fn volume_up(&mut self) {
-//         self.r_state.volume /= 10;
-//         self.r_state.volume *= 10;
+        if self.state.volume < 100 {
+            self.state.volume += 10;
+            if !self.state.is_muted {
+                instance
+                    .sink
+                    .set_volume(self.get_state().get_volume_decimal());
+            }
+        }
+    }
 
-//         if self.r_state.volume < 100 {
-//             self.r_state.volume += 10;
-//             self.r_state.volume_decimal = self.r_state.volume as f32 / 100.0;
-//             if !self.r_state.is_muted {
-//                 self.sink.set_volume(self.r_state.volume_decimal);
-//             }
-//         }
-//     }
+    fn volume_down(&mut self, instance: &mut Player) {
+        self.state.volume /= 10;
+        self.state.volume *= 10;
 
-//     fn volume_down(&mut self) {
-//         self.r_state.volume /= 10;
-//         self.r_state.volume *= 10;
+        if self.state.volume > 0 {
+            self.state.volume -= 10;
+            if !self.state.is_muted {
+                instance
+                    .sink
+                    .set_volume(self.get_state().get_volume_decimal());
+            }
+        }
+    }
 
-//         if self.r_state.volume > 0 {
-//             self.r_state.volume -= 10;
-//             self.r_state.volume_decimal = self.r_state.volume as f32 / 100.0;
-//             if !self.r_state.is_muted {
-//                 self.sink.set_volume(self.r_state.volume_decimal);
-//             }
-//         }
-//     }
+    fn speed_up(&mut self, instance: &mut Player) {
+        self.state.speed /= 10;
+        self.state.speed *= 10;
 
-//     fn speed_up(&mut self) {
-//         self.r_state.speed /= 10;
-//         self.r_state.speed *= 10;
+        if self.state.speed < 200 {
+            self.state.speed += 10;
+            instance
+                .sink
+                .set_speed(self.get_state().get_speed_decimal());
+        }
+    }
 
-//         if self.r_state.speed < 200 {
-//             self.r_state.speed += 10;
-//             self.r_state.speed_decimal = self.r_state.speed as f32 / 100.0;
-//             self.sink.set_speed(self.r_state.speed_decimal);
-//         }
-//     }
+    fn speed_down(&mut self, instance: &mut Player) {
+        self.state.speed /= 10;
+        self.state.speed *= 10;
 
-//     fn speed_down(&mut self) {
-//         self.r_state.speed /= 10;
-//         self.r_state.speed *= 10;
+        if self.state.speed > 10 {
+            self.state.speed -= 10;
+            instance.sink.set_speed(self.state.get_speed_decimal());
+        }
+    }
 
-//         if self.r_state.speed > 10 {
-//             self.r_state.speed -= 10;
-//             self.r_state.speed_decimal = self.r_state.speed as f32 / 100.0;
-//             self.sink.set_speed(self.r_state.speed_decimal);
-//         }
-//     }
+    fn tick(instance: &mut Player, speed: f64) {
+        instance.state.passed_time +=
+            instance.state.time_since_last_tick.elapsed().as_secs_f64() * speed;
+        instance.state.time_since_last_tick = Instant::now();
 
-//     fn tick(&mut self) {
-//         if let Some(instance) = self.audio_instance.as_mut() {
-//             instance.a_state.passed_time += instance
-//                 .a_state
-//                 .time_since_last_tick
-//                 .elapsed()
-//                 .as_secs_f64()
-//                 * self.r_state.speed_decimal as f64;
-//             instance.a_state.time_since_last_tick = Instant::now();
+        instance.state.progress =
+            instance.state.passed_time / instance.state.duration.as_secs_f64();
+    }
 
-//             instance.a_state.progress =
-//                 instance.a_state.passed_time / instance.a_state.duration.as_secs_f64();
-//         }
-//     }
+    fn reset_tick(instance: &mut Player) {
+        instance.state.time_since_last_tick = Instant::now();
+    }
+}
 
-//     fn reset_tick(&mut self) {
-//         if let Some(instance) = self.audio_instance.as_mut() {
-//             instance.a_state.time_since_last_tick = Instant::now();
-//         }
-//     }
-// }
-
-// impl Event for AudioEvent {
-//     fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>) {
-//         match self {
-//             AudioEvent::StartAudio => {}
-//             AudioEvent::EndAudio => {}
-//             AudioEvent::PauseAudio => handler.pause(),
-//             AudioEvent::MuteAudio => handler.mute(),
-//             AudioEvent::ResetSpeed => handler.reset_speed(),
-//             AudioEvent::VolumeUp => handler.volume_up(),
-//             AudioEvent::VolumeDown => handler.volume_down(),
-//             AudioEvent::SpeedUp => handler.speed_up(),
-//             AudioEvent::SpeedDown => handler.speed_down(),
-//             AudioEvent::Tick => handler.tick(),
-//             AudioEvent::ResetTick => handler.reset_tick(),
-//         }
-//     }
-// }
+impl Event<Player> for AudioEvent {
+    fn trigger<B: Backend>(&self, handler: &mut EventHandler<B>, instance: &mut Player) {
+        match self {
+            AudioEvent::StartAudio => {}
+            AudioEvent::EndAudio => {}
+            AudioEvent::PauseAudio => EventHandler::<B>::pause(instance),
+            AudioEvent::MuteAudio => handler.mute(instance),
+            AudioEvent::ResetSpeed => handler.reset_speed(instance),
+            AudioEvent::VolumeUp => handler.volume_up(instance),
+            AudioEvent::VolumeDown => handler.volume_down(instance),
+            AudioEvent::SpeedUp => handler.speed_up(instance),
+            AudioEvent::SpeedDown => handler.speed_down(instance),
+            AudioEvent::Tick => {
+                EventHandler::<B>::tick(instance, handler.get_state().get_speed_decimal() as f64)
+            }
+            AudioEvent::ResetTick => EventHandler::<B>::reset_tick(instance),
+        }
+    }
+}

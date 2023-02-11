@@ -3,7 +3,6 @@ use std::io;
 use tui::{backend::CrosstermBackend, Terminal};
 
 use crate::{
-    audio::init::init_audio_handler,
     events::handler::EventHandler,
     input::{args::Args, config::Config},
     instance::{queue::Queue, selection::Selection, Instance},
@@ -24,15 +23,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
 
     match args.play {
         Some(paths) => {
-            let (sink, _stream) = match init_audio_handler() {
-                Some(handler_data) => handler_data,
-                None => return Err("Failed to create audio sink"),
-            };
-
-            sink.set_volume(state.get_volume_decimal());
-            sink.set_speed(state.get_speed_decimal());
-
-            let mut queue = Queue::new(paths, sink);
+            let mut queue = Queue::new(paths);
             let mut handler = EventHandler::new(state, config, terminal);
             queue.run(&mut handler);
         }

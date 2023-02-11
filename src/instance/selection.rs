@@ -8,7 +8,10 @@ use tui::{
 
 use crate::{
     events::handler::EventHandler,
-    input::selection_keybindings::SelectionKeybindings,
+    input::{
+        key::Key,
+        selection_keybindings::{get_selection_keybindings, poll_selection_input},
+    },
     render::{
         info::{draw_info_no_audio, get_filename_from_path},
         keybindings::draw_keys,
@@ -24,14 +27,12 @@ pub struct Selection {
     pub state: ListState,
 }
 
-impl Instance for Selection {
+impl<I: Instance<()>> Instance<I> for Selection {
     fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
         handler.clear_terminal().unwrap();
 
-        let keybindings = SelectionKeybindings::default();
-
-        let items: Vec<ListItem> = self
-            .content
+        let content = self.content.clone();
+        let items: Vec<ListItem> = content
             .iter()
             .map(|path| ListItem::new(get_filename_from_path(path.as_str()).unwrap_or("???")))
             .collect();
@@ -81,7 +82,7 @@ impl Instance for Selection {
                 );
 
                 rect.render_widget(
-                    draw_keys(keybindings.get_keybindings(), color, highlight_color),
+                    draw_keys(Selection::get_keybindings(), color, highlight_color),
                     chunks_vertical[1],
                 );
             }) {
@@ -91,9 +92,17 @@ impl Instance for Selection {
                 }
             }
 
-            // keybindings.pull_input(handler);
+            self.poll_input(handler);
             thread::sleep(Duration::from_millis(interval));
         }
+    }
+
+    fn get_keybindings() -> Vec<Key> {
+        get_selection_keybindings()
+    }
+
+    fn poll_input<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+        poll_selection_input(handler, self)
     }
 }
 

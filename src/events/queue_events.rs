@@ -20,7 +20,7 @@ trait QueueActions {
 
 impl<B: Backend> QueueActions for EventHandler<B> {
     fn stop_queue(instance: &mut Queue) {
-        instance.sink.stop();
+        // instance.sink.stop();
         instance.interupted = true;
     }
 

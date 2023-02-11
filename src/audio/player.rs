@@ -1,6 +1,6 @@
-use std::{fs::File, thread, time::Duration};
+use std::{thread, time::Duration};
 
-use rodio::{Decoder, Source};
+use rodio::{OutputStream, Sink, Source};
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout},
@@ -8,9 +8,15 @@ use tui::{
 
 use crate::{
     audio::source_data::SourceData,
-    events::handler::EventHandler,
-    input::playback_keybindings::PlaybackKeybindings,
-    instance::queue::Queue,
+    events::{
+        audio_events::AudioEvent,
+        handler::{trigger, EventHandler},
+    },
+    input::{
+        key::Key,
+        player_keybindings::{get_player_keybindings, poll_player_input},
+    },
+    instance::{queue::Queue, Instance},
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
@@ -20,69 +26,39 @@ use crate::{
     state::audio_state::AudioState,
 };
 
+use super::init::init_audio_handler;
+
 pub struct Player {
-    state: AudioState,
-    interupted: bool,
-    source_data: SourceData,
+    pub sink: Sink,
+    // ====================================================================================================
+    // this field has to be stored because if it goes out of scope no audio
+    // will play through the sink
+    // =================================================================================================
+    _stream: OutputStream,
+    pub source_data: SourceData,
+    pub state: AudioState,
+    pub interupted: bool,
 }
 
-impl Player {
-    pub fn new(path: &str) -> Option<Player> {
-        let source_data = match SourceData::new(path) {
-            Some(source_data) => source_data,
-            None => return None,
-        };
+impl Instance<Queue> for Player {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: Option<Queue>) {
+        trigger(AudioEvent::StartAudio, handler, self);
+        let terminal_size = handler.get_terminal_size().unwrap();
 
-        let duration = source_data.duration;
-
-        Some(Player {
-            source_data,
-            state: AudioState::new(duration),
-            interupted: false,
-        })
-    }
-
-    pub fn start_audio<B: Backend>(path: String, handler: &mut EventHandler<B>, queue: &mut Queue) {
-        if let Some(mut audio) = Player::new(&path) {
-            match audio.play(SourceData::get_source(&path).unwrap(), handler, queue) {
-                Ok(_) => {}
-                Err(err) => println!("{err}"),
-            };
-        };
-    }
-
-    pub fn play<B: Backend>(
-        &mut self,
-        source: Decoder<File>,
-        handler: &mut EventHandler<B>,
-        queue: &mut Queue,
-    ) -> Result<(), &str> {
-        // handler.trigger(AudioEvent::StartAudio);
-        let terminal_size = match handler.get_terminal_size() {
-            Ok(size) => size,
-            Err(_) => return Err("Failed to get terminal size"),
-        };
-
-        let keybindings = PlaybackKeybindings::default();
-
+        let source = SourceData::get_source(&self.source_data.path).unwrap();
         let interval = 16;
         let sample_rate = source.sample_rate();
         let step = (sample_rate * interval) as f32 / 1000.0;
 
-        queue.sink.append(source);
+        self.sink.append(source);
         loop {
-            if queue.interupted {
-                // handler.trigger(AudioEvent::EndAudio);
-                return Ok(());
-            }
-
-            // handler.trigger(AudioEvent::Tick);
+            trigger(AudioEvent::Tick, handler, self);
 
             let progress = self.state.progress;
 
             if progress > 1.0 {
-                // handler.trigger(AudioEvent::EndAudio);
-                return Ok(());
+                trigger(AudioEvent::EndAudio, handler, self);
+                return;
             }
 
             let start = (progress * self.source_data.samples.len() as f64) as usize;
@@ -141,10 +117,9 @@ impl Player {
                 );
                 rect.render_widget(draw_bar(progress, color), chunks[2]);
 
-                rect.render_widget(
-                    draw_keys(keybindings.get_keybindings(), color, highlight_color),
-                    chunks[3],
-                );
+                let keybindings = [Player::get_keybindings(), Queue::get_keybindings()].concat();
+
+                rect.render_widget(draw_keys(keybindings, color, highlight_color), chunks[3]);
             }) {
                 Ok(_) => {}
                 Err(err) => {
@@ -153,14 +128,49 @@ impl Player {
             }
 
             loop {
-                // keybindings.pull_input(handler);
+                self.poll_input(handler);
                 if !self.state.is_paused {
                     break;
                 } else {
-                    // handler.trigger(AudioEvent::ResetTick);
+                    trigger(AudioEvent::ResetTick, handler, self);
                 }
             }
             thread::sleep(Duration::from_millis(interval.into()));
         }
+    }
+
+    fn get_keybindings() -> Vec<Key> {
+        get_player_keybindings()
+    }
+
+    fn poll_input<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
+        poll_player_input(handler, self)
+    }
+}
+
+impl Player {
+    pub fn new(path: &str, volume: f32, speed: f32) -> Option<Player> {
+        let source_data = match SourceData::new(path) {
+            Some(source_data) => source_data,
+            None => return None,
+        };
+
+        let duration = source_data.duration;
+
+        let (sink, _stream) = match init_audio_handler() {
+            Some(handler_data) => handler_data,
+            None => return None,
+        };
+
+        sink.set_volume(volume);
+        sink.set_speed(speed);
+
+        Some(Player {
+            sink,
+            _stream,
+            source_data,
+            state: AudioState::new(duration),
+            interupted: false,
+        })
     }
 }
