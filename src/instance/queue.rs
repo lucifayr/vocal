@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-use super::{Instance, InstanceRunable};
+use super::{Instance, InstanceRunable, InstanceRunableWithParent};
 
 pub struct Queue {
     pub queue: Vec<String>,
@@ -21,8 +21,8 @@ pub struct Queue {
     pub looping: bool,
 }
 
-impl<I: Instance> InstanceRunable<I> for Queue {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, _parent: Option<&mut I>) {
+impl InstanceRunable for Queue {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>) {
         handler.clear_terminal().unwrap();
 
         let mut looping = true;
@@ -42,7 +42,7 @@ impl<I: Instance> InstanceRunable<I> for Queue {
                 )
                 .unwrap();
 
-                player.run(handler, Some(self));
+                player.run(handler, self);
             }
         }
 

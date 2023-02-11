@@ -11,6 +11,10 @@ pub trait Instance {
     fn process_input<B: Backend>(&mut self, handler: &mut EventHandler<B>, code: KeyCode);
 }
 
-pub trait InstanceRunable<I: Instance> {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: Option<&mut I>);
+pub trait InstanceRunable {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>);
+}
+
+pub trait InstanceRunableWithParent<I: Instance> {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: &mut I);
 }

@@ -25,7 +25,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
         Some(paths) => {
             let mut queue = Queue::new(paths);
             let mut handler = EventHandler::new(state, config, terminal);
-            queue.run(&mut handler, None::<&mut Selection>);
+            queue.run(&mut handler);
         }
         None => {
             let paths = match args.load {
@@ -40,7 +40,7 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
 
             let mut selection = Selection::new(paths);
             let mut handler = EventHandler::new(state, config, terminal);
-            selection.run(&mut handler, None::<&mut Selection>);
+            selection.run(&mut handler);
         }
     };
     Ok(())

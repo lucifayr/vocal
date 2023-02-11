@@ -18,7 +18,7 @@ use crate::{
         key::{poll_key, Key},
         player_keybindings::{get_player_keybindings, process_player_input},
     },
-    instance::{queue::Queue, Instance, InstanceRunable},
+    instance::{queue::Queue, Instance, InstanceRunableWithParent},
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
@@ -41,8 +41,8 @@ pub struct Player {
     pub state: AudioState,
 }
 
-impl InstanceRunable<Queue> for Player {
-    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, mut parent: Option<&mut Queue>) {
+impl InstanceRunableWithParent<Queue> for Player {
+    fn run<B: Backend>(&mut self, handler: &mut EventHandler<B>, parent: &mut Queue) {
         trigger(AudioEvent::Start, handler, self);
         let terminal_size = handler.get_terminal_size().unwrap();
 
@@ -55,12 +55,10 @@ impl InstanceRunable<Queue> for Player {
         loop {
             trigger(AudioEvent::Tick, handler, self);
 
-            if let Some(queue) = parent.as_mut() {
-                if queue.interupted {
-                    trigger(AudioEvent::End, handler, self);
-                    trigger(QueueEvent::End, handler, queue);
-                    return;
-                }
+            if parent.interupted {
+                trigger(AudioEvent::End, handler, self);
+                trigger(QueueEvent::End, handler, parent);
+                return;
             }
 
             let progress = self.state.progress;
@@ -137,10 +135,7 @@ impl InstanceRunable<Queue> for Player {
 
             loop {
                 if let Some(code) = poll_key() {
-                    if let Some(queue) = parent.as_mut() {
-                        queue.process_input(handler, code);
-                    }
-
+                    parent.process_input(handler, code);
                     self.process_input(handler, code);
                 }
 
