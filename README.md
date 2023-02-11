@@ -1,5 +1,7 @@
 # Vocal
 
+![preview image](/images/preview.png)
+
 ## Description
 Vocal is a terminal program to play audio and to look cool while doing it.
 
