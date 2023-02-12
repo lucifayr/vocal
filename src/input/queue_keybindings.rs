@@ -20,17 +20,27 @@ const STOP: Key = Key {
 };
 
 const LOOP: Key = Key {
-    key: KeyCode::Char('l'),
-    hint: "l: loop",
+    key: KeyCode::Char('o'),
+    hint: "o: loop",
 };
 
 const STOP_LOOP: Key = Key {
+    key: KeyCode::Char('O'),
+    hint: "O: stop loop",
+};
+
+const NEXT: Key = Key {
     key: KeyCode::Char('L'),
-    hint: "L: stop loop",
+    hint: "L: next audio",
+};
+
+const PREV: Key = Key {
+    key: KeyCode::Char('H'),
+    hint: "H: previous audio",
 };
 
 pub fn get_queue_keybindings() -> Vec<Key> {
-    vec![QUITE, STOP, LOOP, STOP_LOOP]
+    vec![QUITE, STOP, LOOP, STOP_LOOP, NEXT, PREV]
 }
 
 pub fn process_queue_input<B: Backend>(
@@ -42,12 +52,16 @@ pub fn process_queue_input<B: Backend>(
     const STOP_KEY: KeyCode = STOP.key;
     const LOOP_KEY: KeyCode = LOOP.key;
     const STOP_LOOP_KEY: KeyCode = STOP_LOOP.key;
+    const NEXT_KEY: KeyCode = NEXT.key;
+    const PREV_KEY: KeyCode = PREV.key;
 
     match code {
         QUIT_KEY => trigger(UniversalEvent::QuitProgram, handler, instance),
         STOP_KEY => trigger(QueueEvent::Stop, handler, instance),
         LOOP_KEY => trigger(QueueEvent::Loop, handler, instance),
         STOP_LOOP_KEY => trigger(QueueEvent::StopLoop, handler, instance),
+        NEXT_KEY => trigger(QueueEvent::Next, handler, instance),
+        PREV_KEY => trigger(QueueEvent::Previous, handler, instance),
         _ => {}
     }
 }

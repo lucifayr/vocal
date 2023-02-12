@@ -12,7 +12,7 @@ use tui::{
 
 use crate::{
     audio::{init::init_audio_handler, source_data::SourceData},
-    events::{event::trigger, player_events::PlayerEvent},
+    events::{event::trigger, player_events::PlayerEvent, queue_events::QueueEvent},
     input::{
         key::{poll_key, Key},
         player_keybindings::{get_player_keybindings, process_player_input},
@@ -52,7 +52,7 @@ impl InstanceRunableWithParent<Queue> for Player {
         loop {
             self.tick(handler.get_state().get_speed_decimal().into());
 
-            if parent.interupted {
+            if parent.interupted || parent.audio_changed {
                 trigger(PlayerEvent::Stop, handler, self);
                 return;
             }
@@ -60,6 +60,7 @@ impl InstanceRunableWithParent<Queue> for Player {
             let progress = self.state.progress;
             if progress > 1.0 {
                 trigger(PlayerEvent::Stop, handler, self);
+                trigger(QueueEvent::AudioFinished, handler, parent);
                 return;
             }
 

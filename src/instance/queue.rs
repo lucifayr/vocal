@@ -14,6 +14,8 @@ use super::{player::Player, Instance, InstanceRunable, InstanceRunableWithParent
 
 pub struct Queue {
     pub queue: Vec<String>,
+    pub current_audio_index: usize,
+    pub audio_changed: bool,
     pub interupted: bool,
     pub looping: bool,
 }
@@ -24,18 +26,22 @@ impl InstanceRunable for Queue {
 
         let mut looping = true;
         while looping {
-            for path in self.queue.clone().iter() {
+            while self.current_audio_index < self.queue.len() {
                 if self.interupted {
                     return;
                 }
 
+                self.current_audio_index = self.current_audio_index.clamp(0, self.queue.len() - 1);
+                let path = self.queue.get(self.current_audio_index).unwrap();
+
                 let mut player = Player::new(
-                    path,
+                    &path,
                     handler.get_state().get_volume_decimal(),
                     handler.get_state().get_speed_decimal(),
                 )
                 .unwrap();
 
+                self.audio_changed = false;
                 player.run(handler, self);
             }
 
@@ -62,6 +68,8 @@ impl Queue {
             queue,
             interupted: false,
             looping: false,
+            audio_changed: false,
+            current_audio_index: 0,
         }
     }
 }
