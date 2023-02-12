@@ -23,7 +23,7 @@ impl Display for PlayerEvent {
         let msg = match self {
             PlayerEvent::Start => "-AUDIO TRACK- Audio has started",
             PlayerEvent::Stop => "-AUDIO TRACK- Audio has stopped",
-            PlayerEvent::Pause => "-AUDIO TRACK- Audio has been paused",
+            PlayerEvent::Pause => "-AUDIO TRACK- Paused has been toggled",
             PlayerEvent::Mute => "-AUDIO TRACK- Audio has been muted",
             PlayerEvent::Unmute => "-AUDIO TRACK- Audio has been unmuted",
             PlayerEvent::VolumeUp => "-AUDIO TRACK- Volume has been increased",

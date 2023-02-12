@@ -53,6 +53,7 @@ pub fn get_player_keybindings() -> Vec<Key> {
     vec![
         PAUSE,
         MUTE,
+        UNMUTE,
         VOLUME_UP,
         VOLUME_DOWN,
         SPEED_UP,
