@@ -21,15 +21,12 @@ impl SourceData {
         })
     }
 
-    pub fn get_source(path: &str) -> Option<Decoder<File>> {
-        let file = match std::fs::File::open(path) {
-            Ok(file) => file,
-            Err(_) => return None,
-        };
+    pub fn get_source(path: &str) -> Result<Decoder<File>, std::io::Error> {
+        let file = std::fs::File::open(path)?;
 
         match Decoder::new(file) {
-            Ok(source) => Some(source),
-            Err(_) => None,
+            Ok(source) => Ok(source),
+            Err(err) => Err(std::io::Error::new(std::io::ErrorKind::Other, err)),
         }
     }
 }

@@ -22,7 +22,10 @@ pub struct Queue {
 
 impl InstanceRunable for Queue {
     fn run<B: Backend>(&mut self, handler: &mut StateHandler<B>) {
-        handler.clear_terminal().unwrap();
+        match handler.clear_terminal() {
+            Ok(_) => {}
+            Err(err) => log::error!("-ERROR- Filed to clear terminal: {err}"),
+        }
 
         let mut looping = true;
         while looping {
@@ -32,17 +35,23 @@ impl InstanceRunable for Queue {
                 }
 
                 self.current_audio_index = self.current_audio_index.clamp(0, self.queue.len() - 1);
-                let path = self.queue.get(self.current_audio_index).unwrap();
-
-                let mut player = Player::new(
-                    &path,
-                    handler.get_state().get_volume_decimal(),
-                    handler.get_state().get_speed_decimal(),
-                )
-                .unwrap();
+                let path = self
+                    .queue
+                    .get(self.current_audio_index)
+                    .expect("should exist");
 
                 self.audio_changed = false;
-                player.run(handler, self);
+
+                match Player::new(
+                    path,
+                    handler.get_state().get_volume_decimal(),
+                    handler.get_state().get_speed_decimal(),
+                ) {
+                    Some(mut player) => player.run(handler, self),
+                    None => {
+                        log::error!("-ERROR- Failed to start audio player")
+                    }
+                }
             }
 
             looping = self.looping;

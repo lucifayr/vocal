@@ -30,7 +30,10 @@ pub struct Selection {
 
 impl InstanceRunable for Selection {
     fn run<B: Backend>(&mut self, handler: &mut StateHandler<B>) {
-        handler.clear_terminal().unwrap();
+        match handler.clear_terminal() {
+            Ok(_) => {}
+            Err(err) => log::error!("-ERROR- Failed to clear terminal: {err}"),
+        }
 
         let content = self.content.clone();
         let items: Vec<ListItem> = content

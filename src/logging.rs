@@ -8,7 +8,7 @@ pub fn create_log_file(dir: &str, prefix: &str) -> Result<File, std::io::Error> 
     match File::create(format!("{dir}/{prefix}_{date_str}.log",)) {
         Ok(file) => Ok(file),
         Err(_) => {
-            create_dir_all(dir).unwrap();
+            create_dir_all(dir)?;
             File::create(format!("{dir}/{prefix}_{date_str}.log"))
         }
     }
@@ -19,11 +19,11 @@ pub fn clean_log_dir(dir: &str) -> Result<(), std::io::Error> {
 
     let mut files = Vec::new();
     for entry in entries {
-        let entry = entry.unwrap();
+        let entry = entry?;
         let path = entry.path();
         if path.is_file() {
-            let metadata = metadata(&path).unwrap();
-            let modified_time = metadata.modified().unwrap();
+            let metadata = metadata(&path)?;
+            let modified_time = metadata.modified()?;
             files.push((path, modified_time));
         }
     }

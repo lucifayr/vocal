@@ -41,9 +41,22 @@ pub struct Player {
 impl InstanceRunableWithParent<Queue> for Player {
     fn run<B: Backend>(&mut self, handler: &mut StateHandler<B>, parent: &mut Queue) {
         trigger(PlayerEvent::Start, handler, self);
-        let terminal_size = handler.get_terminal_size().unwrap();
+        let terminal_size = match handler.get_terminal_size() {
+            Ok(size) => size,
+            Err(err) => {
+                log::error!("-ERROR- Failed to get terminal size: {err}");
+                return;
+            }
+        };
 
-        let source = SourceData::get_source(&self.source_data.path).unwrap();
+        let source = match SourceData::get_source(&self.source_data.path) {
+            Ok(source) => source,
+            Err(err) => {
+                log::error!("-ERROR- Failed to audio source data: {err}");
+                return;
+            }
+        };
+
         let interval = 16;
         let sample_rate = source.sample_rate();
         let step = (sample_rate * interval) as f32 / 1000.0;
