@@ -2,7 +2,10 @@ use chrono::Local;
 use std::fs::{create_dir_all, metadata, read_dir, remove_file, File};
 
 pub fn create_log_file(dir: &str, prefix: &str) -> Result<File, std::io::Error> {
-    clean_log_dir(dir)?;
+    match clean_log_dir(dir) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
 
     let date_str = Local::now().format("%Y-%m-%d_%H:%M:%S");
     match File::create(format!("{dir}/{prefix}_{date_str}.log",)) {
