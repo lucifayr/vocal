@@ -122,6 +122,26 @@ Log files have the following naming schema: `{prefix}_{date}_{time}.log}`.
 ```toml
 log_file_prefix = 'vocal'
 ```
+### show_hotkeys
+
+##### Description
+Whether to show the hotkeys in the footer section while playing
+an audio track.
+
+##### Default Value
+```toml
+show_hotkeys = true
+```
+
+### custom_footer
+
+##### Description
+The text in the shown in the footer section if `show_hotkeys = false`.
+
+##### Default Value
+```toml
+custom_footer = None
+```
 
 ### starting_volume
 
@@ -161,4 +181,24 @@ starting_speed = 200
 ##### Min
 ```toml
 starting_speed = 10
+```
+
+### bar_width
+
+##### Description
+The width of the bars in the bar chart shown when playing an audio track.
+
+##### Default Value
+```toml
+bar_width = 3
+```
+
+### bar_gap
+
+##### Description
+The gap between bars in the bar chart shown when playing an audio track.
+
+##### Default Value
+```toml
+bar_gap = 1
 ```
