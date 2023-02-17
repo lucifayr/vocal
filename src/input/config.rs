@@ -11,11 +11,15 @@ use tui::style::Color;
 pub struct Config {
     pub color: String,
     pub highlight_color: String,
+    pub show_hotkeys: bool,
+    pub custom_footer: Option<String>,
+    pub bar_width: u16,
+    pub bar_gap: u16,
+    pub starting_volume: u8,
+    pub starting_speed: u8,
     pub audio_directory: String,
     pub log_directory: String,
     pub log_file_prefix: String,
-    pub starting_volume: u8,
-    pub starting_speed: u8,
 }
 
 impl std::default::Default for Config {
@@ -28,11 +32,15 @@ impl std::default::Default for Config {
         Self {
             color: "blue".to_owned(),
             highlight_color: "magenta".to_owned(),
+            show_hotkeys: true,
+            custom_footer: None,
+            starting_volume: 50,
+            starting_speed: 100,
+            bar_width: 3,
+            bar_gap: 1,
             audio_directory: format!("{home_directory}/vocal/audio"),
             log_directory: format!("{home_directory}/vocal/logs"),
             log_file_prefix: "vocal".to_owned(),
-            starting_volume: 50,
-            starting_speed: 100,
         }
     }
 }

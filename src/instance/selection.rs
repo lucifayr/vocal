@@ -13,8 +13,8 @@ use crate::{
         selection_keybindings::{get_selection_keybindings, process_selection_input},
     },
     render::{
+        footer::draw_footer,
         info::{draw_info_no_audio, get_filename_from_path},
-        keybindings::draw_keys,
         list::draw_list,
     },
     state::handler::StateHandler,
@@ -85,8 +85,13 @@ impl InstanceRunable for Selection {
                     chunks_horizontal[1],
                 );
 
+                let text: String = Selection::get_keybindings()
+                    .iter()
+                    .map(|item| format!("  {}", item.hint))
+                    .collect();
+
                 rect.render_widget(
-                    draw_keys(Selection::get_keybindings(), color, highlight_color),
+                    draw_footer(text, true, color, highlight_color),
                     chunks_vertical[1],
                 );
             }) {

@@ -21,8 +21,8 @@ use crate::{
     render::{
         bar::draw_bar,
         chart::{create_data_from_samples, draw_chart},
+        footer::draw_footer,
         info::draw_info,
-        keybindings::draw_keys,
     },
     state::{audio_state::AudioState, handler::StateHandler},
 };
@@ -83,6 +83,10 @@ impl InstanceRunableWithParent<Queue> for Player {
             let volume = handler.get_state().volume;
             let speed = handler.get_state().speed;
             let is_muted = handler.get_state().is_muted;
+            let show_hotkeys = handler.get_config().show_hotkeys;
+            let custom_footer = handler.get_config().custom_footer.clone();
+            let bar_width = handler.get_config().bar_width;
+            let bar_gap = handler.get_config().bar_gap;
             let color = handler.get_config().get_color();
             let highlight_color = handler.get_config().get_highlight_color();
 
@@ -102,6 +106,18 @@ impl InstanceRunableWithParent<Queue> for Player {
                     )
                     .split(size);
 
+                let top_chunks = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints(
+                        [
+                            Constraint::Percentage(5),
+                            Constraint::Percentage(90),
+                            Constraint::Percentage(5),
+                        ]
+                        .as_ref(),
+                    )
+                    .split(chunks[0]);
+
                 let max = 10000;
                 let multiplier = 100_f32;
 
@@ -114,8 +130,14 @@ impl InstanceRunableWithParent<Queue> for Player {
                     multiplier,
                 ) {
                     rect.render_widget(
-                        draw_chart(data.as_slice(), max * multiplier as u64, color),
-                        chunks[0],
+                        draw_chart(
+                            data.as_slice(),
+                            bar_width,
+                            bar_gap,
+                            max * multiplier as u64,
+                            color,
+                        ),
+                        top_chunks[1],
                     );
                 }
 
@@ -133,9 +155,20 @@ impl InstanceRunableWithParent<Queue> for Player {
                 );
                 rect.render_widget(draw_bar(progress, color), chunks[2]);
 
-                let keybindings = [Player::get_keybindings(), Queue::get_keybindings()].concat();
+                let text: String = if show_hotkeys {
+                    [Player::get_keybindings(), Queue::get_keybindings()]
+                        .concat()
+                        .iter()
+                        .map(|item| format!("  {}", item.hint))
+                        .collect()
+                } else {
+                    custom_footer.unwrap_or("".to_owned())
+                };
 
-                rect.render_widget(draw_keys(keybindings, color, highlight_color), chunks[3]);
+                rect.render_widget(
+                    draw_footer(text, show_hotkeys, color, highlight_color),
+                    chunks[3],
+                );
             }) {
                 Ok(_) => {}
                 Err(err) => {

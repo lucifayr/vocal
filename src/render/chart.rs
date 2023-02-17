@@ -1,18 +1,20 @@
 use tui::{
     style::{Color, Style},
-    widgets::{BarChart, Block, Borders},
+    widgets::{BarChart, Block},
 };
 
-pub fn draw_chart<'a>(data: &'a [(&'a str, u64)], max: u64, color: Color) -> BarChart<'a> {
+pub fn draw_chart<'a>(
+    data: &'a [(&'a str, u64)],
+    bar_width: u16,
+    bar_gap: u16,
+    max: u64,
+    color: Color,
+) -> BarChart<'a> {
     BarChart::default()
-        .block(
-            Block::default()
-                .style(Style::default().fg(color))
-                .borders(Borders::BOTTOM),
-        )
-        .bar_width(3)
+        .block(Block::default().style(Style::default().fg(color)))
+        .bar_width(bar_width)
+        .bar_gap(bar_gap)
         .bar_style(Style::default().fg(color).bg(Color::Reset))
-        .bar_gap(1)
         .value_style(Style::default().fg(color).bg(color))
         .label_style(Style::default())
         .data(data)
