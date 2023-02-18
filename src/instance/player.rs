@@ -98,7 +98,8 @@ impl InstanceRunableWithParent<Queue> for Player {
                     .constraints(
                         [
                             Constraint::Percentage(50),
-                            Constraint::Percentage(25),
+                            Constraint::Percentage(20),
+                            Constraint::Percentage(5),
                             Constraint::Percentage(10),
                             Constraint::Percentage(15),
                         ]
@@ -153,7 +154,7 @@ impl InstanceRunableWithParent<Queue> for Player {
                     ),
                     chunks[1],
                 );
-                rect.render_widget(draw_bar(progress, color), chunks[2]);
+                rect.render_widget(draw_bar(progress, color), chunks[3]);
 
                 let text: String = if show_hotkeys {
                     [Player::get_keybindings(), Queue::get_keybindings()]
@@ -167,7 +168,7 @@ impl InstanceRunableWithParent<Queue> for Player {
 
                 rect.render_widget(
                     draw_footer(text, show_hotkeys, color, highlight_color),
-                    chunks[3],
+                    chunks[4],
                 );
             }) {
                 Ok(_) => {}
