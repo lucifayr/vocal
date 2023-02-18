@@ -140,7 +140,7 @@ The text in the shown in the footer section if `show_hotkeys = false`.
 
 ##### Default Value
 ```toml
-custom_footer = None
+custom_footer = ""
 ```
 
 ### starting_volume
