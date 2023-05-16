@@ -20,9 +20,6 @@ pub fn run(config: Config, args: Args) -> Result<(), &'static str> {
     let speed = config.starting_speed.clamp(10, 200);
     let state = RuntimeState::new(volume, speed);
 
-    // ====================================================================================================
-    // refactor this
-    // =================================================================================================
     let paths = match args.load {
         Some(audio) => audio,
         None => match Config::get_audio_directory_content(config.audio_directory.as_str()) {
