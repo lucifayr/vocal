@@ -1,10 +1,10 @@
 [package]
 name = "vocal"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 authors = ["Lucy Gschwantner lucygschwantner@gmail.com"]
 license = "MIT"
-description = "A configurable TUI player that plays audio and looks cool while doing it"
+description = "A configurable TUI program that plays audio and looks cool while doing it"
 repository = "https://github.com/jackboxx/vocal"
 readme = "README.md"
 keywords = ["audio", "cli", "music", "tui", "terminal"]
