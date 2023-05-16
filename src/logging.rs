@@ -17,21 +17,21 @@ pub fn create_log_file(dir: &str, prefix: &str) -> Result<File, std::io::Error> 
 pub fn clean_log_dir(dir: &str) -> Result<(), std::io::Error> {
     let entries = read_dir(dir)?;
 
-    let mut files = Vec::new();
+    let mut files_with_mod_date = Vec::new();
     for entry in entries {
         let entry = entry?;
         let path = entry.path();
         if path.is_file() {
             let metadata = metadata(&path)?;
             let modified_time = metadata.modified()?;
-            files.push((path, modified_time));
+            files_with_mod_date.push((path, modified_time));
         }
     }
 
-    if files.len() >= 10 {
-        files.sort_by(|a, b| b.1.cmp(&a.1));
+    if files_with_mod_date.len() >= 10 {
+        files_with_mod_date.sort_by(|a, b| b.1.cmp(&a.1));
 
-        for file in files.iter().skip(9) {
+        for file in files_with_mod_date.iter().skip(9) {
             let del_path = &file.0;
             remove_file(del_path)?;
         }
